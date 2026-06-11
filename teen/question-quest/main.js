@@ -2,12 +2,11 @@ import Phaser from 'phaser';
 import * as Tone from 'tone';
 import { scenarioData } from './scenarios.js';
 
-// ── Grayscale shader pipeline ────────────────────────────────────────────────
+// ── Grayscale shader ─────────────────────────────────────────────────────────
 class GrayscalePostFX extends Phaser.Renderer.WebGL.Pipelines.PostFXPipeline {
     constructor(game) {
         super({
-            game,
-            renderTarget: true,
+            game, renderTarget: true,
             fragShader: `
             precision mediump float;
             uniform sampler2D uMainSampler;
@@ -16,13 +15,12 @@ class GrayscalePostFX extends Phaser.Renderer.WebGL.Pipelines.PostFXPipeline {
                 vec4 c = texture2D(uMainSampler, outTexCoord);
                 float g = dot(c.rgb, vec3(0.299, 0.587, 0.114));
                 gl_FragColor = vec4(vec3(g), c.a);
-            }
-            `
+            }`
         });
     }
 }
 
-// ── Phaser config ────────────────────────────────────────────────────────────
+// ── Config ───────────────────────────────────────────────────────────────────
 const config = {
     type: Phaser.AUTO,
     scale: {
@@ -38,16 +36,16 @@ const config = {
 
 new Phaser.Game(config);
 
-// ── Game state ───────────────────────────────────────────────────────────────
-let gs;                          // game scene reference
+// ── State ────────────────────────────────────────────────────────────────────
+let gs;
 let currentScenarioIndex = 0;
 let score = 0;
 let streak = 0;
 let maxStreak = 0;
 let synth;
 let isSecondPass = false;
-let currentScreen = 'start';    // 'start' | 'scenario' | 'feedback' | 'end'
-let lastFeedbackState = null;   // { data, isCorrect }
+let currentScreen = 'start';
+let lastFeedbackState = null;
 let currentOptionBtns = [];
 
 // ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -69,24 +67,20 @@ function create() {
 function update() {}
 
 function rerenderScreen() {
-    if (currentScreen === 'start')    showStartScreen();
+    if      (currentScreen === 'start')    showStartScreen();
     else if (currentScreen === 'scenario') loadScenario();
     else if (currentScreen === 'feedback' && lastFeedbackState)
         showFeedback(lastFeedbackState.data, lastFeedbackState.isCorrect);
-    else if (currentScreen === 'end') showEndScreen();
+    else if (currentScreen === 'end')      showEndScreen();
 }
 
 // ── Layout helpers ───────────────────────────────────────────────────────────
-function sizes() {
+function sz() {
     const { width, height } = gs.scale;
-    return {
-        width, height,
-        isDesktop: width >= 900,
-        isMid: width >= 600
-    };
+    return { width, height, isDesktop: width >= 900, isMid: width >= 600 };
 }
 
-function centerContainer(container, cardW, cardH, width, height) {
+function centerCard(container, cardW, cardH, width, height) {
     const maxH = height * 0.95;
     if (cardH > maxH) {
         const s = maxH / cardH;
@@ -98,11 +92,11 @@ function centerContainer(container, cardW, cardH, width, height) {
     }
 }
 
-function drawCard(g, w, h) {
+function drawCardBg(g, w, h, alpha = 0.88) {
     g.clear();
-    g.fillStyle(0x050510, 0.97);
+    g.fillStyle(0x020208, alpha);
     g.fillRoundedRect(0, 0, w, h, 14);
-    g.lineStyle(1, 0x00ffff, 0.45);
+    g.lineStyle(1, 0x00ffff, 0.5);
     g.strokeRoundedRect(0, 0, w, h, 14);
 }
 
@@ -114,10 +108,7 @@ function drawBtnGfx(g, w, h, color, alpha) {
     g.strokeRoundedRect(-w / 2, -h / 2, w, h, 8);
 }
 
-/**
- * Creates a button container at (x, y) local coords.
- * Returns { container, bg, label, w, h } where h is the actual rendered height.
- */
+/** Creates a button container. Returns { container, bg, label, w, h } */
 function makeBtn(x, y, text, w, minH, fontSize, callback) {
     const label = gs.add.text(0, 0, text, {
         fontFamily: 'Arial, sans-serif',
@@ -139,7 +130,7 @@ function makeBtn(x, y, text, w, minH, fontSize, callback) {
     );
     container.on('pointerover', () => {
         document.body.style.cursor = 'pointer';
-        drawBtnGfx(bg, w, h, 0x00ffff, 0.18);
+        drawBtnGfx(bg, w, h, 0x00ffff, 0.2);
         label.setColor('#ff00ff');
     });
     container.on('pointerout', () => {
@@ -151,7 +142,6 @@ function makeBtn(x, y, text, w, minH, fontSize, callback) {
         document.body.style.cursor = 'default';
         callback();
     });
-
     return { container, bg, label, w, h };
 }
 
@@ -159,19 +149,18 @@ function makeBtn(x, y, text, w, minH, fontSize, callback) {
 function showStartScreen() {
     currentScreen = 'start';
     gs.children.removeAll();
-    const { width, height, isDesktop, isMid } = sizes();
+    const { width, height, isDesktop, isMid } = sz();
 
-    const titleSz  = isDesktop ? 46 : isMid ? 32 : 24;
-    const subSz    = isDesktop ? 22 : isMid ? 17 : 13;
-    const instrSz  = isDesktop ? 16 : isMid ? 14 : 12;
-    const btnSz    = isDesktop ? 22 : isMid ? 18 : 15;
-    const pad      = isDesktop ? 48 : 28;
-    const cardW    = isDesktop ? Math.min(640, width * 0.85) : width * 0.92;
-    const cw       = cardW - pad * 2;
-    const btnH     = isDesktop ? 64 : 52;
-    const btnW     = Math.min(cw, isDesktop ? 300 : 220);
+    const titleSz = isDesktop ? 46 : isMid ? 32 : 24;
+    const subSz   = isDesktop ? 22 : isMid ? 17 : 13;
+    const instrSz = isDesktop ? 16 : isMid ? 14 : 12;
+    const btnSz   = isDesktop ? 22 : isMid ? 18 : 15;
+    const pad     = isDesktop ? 48 : 28;
+    const cardW   = isDesktop ? Math.min(640, width * 0.85) : width * 0.92;
+    const cw      = cardW - pad * 2;
+    const btnH    = isDesktop ? 64 : 52;
+    const btnW    = Math.min(cw, isDesktop ? 300 : 220);
 
-    // BG gradient
     const bg = gs.add.graphics();
     bg.fillGradientStyle(0x050505, 0x050505, 0x0a0a1a, 0x0a0a1a, 1);
     bg.fillRect(0, 0, width, height);
@@ -219,10 +208,10 @@ function showStartScreen() {
 
     const cardH = y + pad;
     const cardGfx = gs.add.graphics();
-    drawCard(cardGfx, cardW, cardH);
+    drawCardBg(cardGfx, cardW, cardH);
 
     const mc = gs.add.container(0, 0, [cardGfx, title, sub, instr, startBtn]);
-    centerContainer(mc, cardW, cardH, width, height);
+    centerCard(mc, cardW, cardH, width, height);
 
     gs.tweens.add({ targets: title, alpha: 0.8, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 }
@@ -237,25 +226,41 @@ function loadScenario() {
     currentScreen = 'scenario';
     gs.children.removeAll();
     currentOptionBtns = [];
-    const { width, height, isDesktop, isMid } = sizes();
+    const { width, height, isDesktop, isMid } = sz();
     const data = scenarioData[currentScenarioIndex];
 
-    const sitSz   = isDesktop ? 20 : isMid ? 16 : 13;
-    const promptSz = isDesktop ? 14 : isMid ? 13 : 11;
-    const btnSz   = isDesktop ? 16 : isMid ? 14 : 12;
-    const hudSz   = isDesktop ? 14 : 12;
-    const pad     = isDesktop ? 36 : 20;
-    const cardW   = isDesktop ? Math.min(760, width * 0.9) : width * 0.95;
-    const cw      = cardW - pad * 2;
-    const minBtnH = isDesktop ? 52 : isMid ? 46 : 40;
+    const sitSz    = isDesktop ? 22 : isMid ? 17 : 14;
+    const promptSz = isDesktop ? 15 : isMid ? 13 : 12;
+    const btnSz    = isDesktop ? 17 : isMid ? 15 : 13;
+    const hudSz    = isDesktop ? 15 : 13;
+    const pad      = isDesktop ? 36 : 20;
+    const cardW    = isDesktop ? Math.min(760, width * 0.88) : width * 0.95;
+    const cw       = cardW - pad * 2;
+    const minBtnH  = isDesktop ? 54 : isMid ? 48 : 42;
 
-    const bg = gs.add.graphics();
-    bg.fillGradientStyle(0x050505, 0x050505, 0x0a0a1a, 0x0a0a1a, 1);
-    bg.fillRect(0, 0, width, height);
+    // ── Full-bleed background image ──────────────────────────────────────────
+    const imgKey = isSecondPass
+        ? `scen_${currentScenarioIndex}_p2`
+        : `scen_${currentScenarioIndex}_p1`;
 
+    const scenImg = gs.add.image(width / 2, height / 2, imgKey);
+    // Scale to cover the full viewport at the image's native aspect ratio
+    const imgScaleX = width / scenImg.width;
+    const imgScaleY = height / scenImg.height;
+    scenImg.setScale(Math.max(imgScaleX, imgScaleY));
+
+    if (gs.renderer.type === Phaser.WEBGL) scenImg.setPostPipeline('GrayscalePostFX');
+    else scenImg.setTint(0x777777);
+
+    // Dark overlay so card text remains readable
+    const overlay = gs.add.graphics();
+    overlay.fillStyle(0x000000, 0.60);
+    overlay.fillRect(0, 0, width, height);
+
+    // ── Card overlaid on top ─────────────────────────────────────────────────
     let y = pad;
 
-    // HUD
+    // HUD row
     const progressT = gs.add.text(pad, y,
         `Question ${currentScenarioIndex + 1} / ${scenarioData.length}`, {
         fontFamily: 'Arial, sans-serif', fontSize: `${hudSz}px`,
@@ -267,16 +272,7 @@ function loadScenario() {
         color: '#ff00ff', fontStyle: 'bold'
     }).setOrigin(1, 0);
 
-    y += Math.max(progressT.displayHeight, streakT.displayHeight) + 12;
-
-    // Scenario image (grayscale)
-    const imgMaxH = isDesktop ? 260 : isMid ? 195 : 145;
-    const imgH = Math.min(imgMaxH, cw * 9 / 16);
-    const imgKey = isSecondPass ? `scen_${currentScenarioIndex}_p2` : `scen_${currentScenarioIndex}_p1`;
-    const scenImg = gs.add.image(cardW / 2, y + imgH / 2, imgKey).setDisplaySize(cw, imgH);
-    if (gs.renderer.type === Phaser.WEBGL) scenImg.setPostPipeline('GrayscalePostFX');
-    else scenImg.setTint(0x888888);
-    y += imgH + 14;
+    y += Math.max(progressT.displayHeight, streakT.displayHeight) + 16;
 
     // Situation
     const sitT = gs.add.text(cardW / 2, y, data.situation, {
@@ -284,7 +280,7 @@ function loadScenario() {
         color: '#ffffff', fontStyle: 'bold', align: 'center',
         wordWrap: { width: cw }
     }).setOrigin(0.5, 0);
-    y += sitT.displayHeight + 8;
+    y += sitT.displayHeight + 10;
 
     // Prompt
     const promptT = gs.add.text(cardW / 2, y,
@@ -293,7 +289,7 @@ function loadScenario() {
         color: '#ffd900', fontStyle: 'italic', align: 'center',
         wordWrap: { width: cw }
     }).setOrigin(0.5, 0);
-    y += promptT.displayHeight + 14;
+    y += promptT.displayHeight + 16;
 
     // Answer buttons (shuffled)
     const shuffled = Phaser.Utils.Array.Shuffle([...data.options]);
@@ -301,7 +297,7 @@ function loadScenario() {
     shuffled.forEach(opt => {
         let result;
         result = makeBtn(cardW / 2, y, opt.text, cw, minBtnH, btnSz,
-            () => handleChoice(opt, result.container, scenImg));
+            () => handleChoice(opt, result.container));
         result.container.y = y + result.h / 2;
         y += result.h + 8;
         optBtns.push(result.container);
@@ -310,24 +306,20 @@ function loadScenario() {
 
     const cardH = y + pad;
     const cardGfx = gs.add.graphics();
-    drawCard(cardGfx, cardW, cardH);
+    drawCardBg(cardGfx, cardW, cardH, 0.82);
 
     const mc = gs.add.container(0, 0,
-        [cardGfx, progressT, streakT, scenImg, sitT, promptT, ...optBtns]);
-    centerContainer(mc, cardW, cardH, width, height);
+        [cardGfx, progressT, streakT, sitT, promptT, ...optBtns]);
+    centerCard(mc, cardW, cardH, width, height);
 }
 
-function handleChoice(option, btn, scenImg) {
+function handleChoice(option) {
     const data = scenarioData[currentScenarioIndex];
     const isCorrect = option.type === 'best';
 
     currentOptionBtns.forEach(b => b.disableInteractive());
 
-    // Flash selected
-    const bg = btn.getAt(0);
-    gs.tweens.add({ targets: bg, alpha: 0.4, duration: 80, yoyo: true, repeat: 3 });
-
-    gs.time.delayedCall(380, () => {
+    gs.time.delayedCall(350, () => {
         if (isCorrect) {
             score++; streak++;
             if (streak > maxStreak) maxStreak = streak;
@@ -344,7 +336,7 @@ function handleChoice(option, btn, scenImg) {
 function showFeedback(data, isCorrect) {
     currentScreen = 'feedback';
     gs.children.removeAll();
-    const { width, height, isDesktop, isMid } = sizes();
+    const { width, height, isDesktop, isMid } = sz();
 
     const statusSz = isDesktop ? 26 : isMid ? 20 : 16;
     const headSz   = isDesktop ? 15 : isMid ? 13 : 12;
@@ -362,7 +354,6 @@ function showFeedback(data, isCorrect) {
 
     let y = pad;
 
-    // Status
     const statusT = gs.add.text(cardW / 2, y,
         isCorrect ? '✓  STREAK +1' : '✗  STREAK RESET', {
         fontFamily: 'Arial, sans-serif', fontSize: `${statusSz}px`,
@@ -371,19 +362,17 @@ function showFeedback(data, isCorrect) {
     }).setOrigin(0.5, 0);
     y += statusT.displayHeight + 14;
 
-    // Divider
     const div = gs.add.graphics();
     div.lineStyle(1, 0x00ffff, 0.3);
     div.lineBetween(pad, y, cardW - pad, y);
     y += 16;
 
-    // Teaching sections
     const sections = [
         { head: 'Big Picture', body: 'Wider context, patterns, goals, and consequences.' },
         { head: 'Details',     body: 'Specific facts, evidence, timing, and direct results.' },
         { head: 'Best Question', body: data.explanation }
     ];
-    const sectionItems = [];
+    const items = [];
     sections.forEach(sec => {
         const headT = gs.add.text(pad, y, sec.head, {
             fontFamily: 'Arial, sans-serif', fontSize: `${headSz}px`,
@@ -396,11 +385,10 @@ function showFeedback(data, isCorrect) {
             color: '#ccffff', wordWrap: { width: cw }
         }).setOrigin(0, 0);
         y += bodyT.displayHeight + 14;
-        sectionItems.push(headT, bodyT);
+        items.push(headT, bodyT);
     });
 
     y += 4;
-
     const isLast = currentScenarioIndex >= scenarioData.length - 1;
     const { container: nextBtn, h: nbH } = makeBtn(
         cardW / 2, y,
@@ -412,11 +400,10 @@ function showFeedback(data, isCorrect) {
 
     const cardH = y + pad;
     const cardGfx = gs.add.graphics();
-    drawCard(cardGfx, cardW, cardH);
+    drawCardBg(cardGfx, cardW, cardH);
 
-    const mc = gs.add.container(0, 0,
-        [cardGfx, statusT, div, ...sectionItems, nextBtn]);
-    centerContainer(mc, cardW, cardH, width, height);
+    const mc = gs.add.container(0, 0, [cardGfx, statusT, div, ...items, nextBtn]);
+    centerCard(mc, cardW, cardH, width, height);
 }
 
 function advanceQuest() {
@@ -428,7 +415,7 @@ function advanceQuest() {
 function showEndScreen() {
     currentScreen = 'end';
     gs.children.removeAll();
-    const { width, height, isDesktop, isMid } = sizes();
+    const { width, height, isDesktop, isMid } = sz();
 
     const titleSz = isDesktop ? 38 : isMid ? 28 : 22;
     const scoreSz = isDesktop ? 24 : isMid ? 19 : 15;
@@ -462,7 +449,7 @@ function showEndScreen() {
     }).setOrigin(0.5, 0);
     y += scoreT.displayHeight + 10;
 
-    let message = score <= 3
+    const message = score <= 3
         ? "You're just getting started. Try again and level up."
         : score <= 7
         ? "You're building real question power. Keep going."
@@ -490,18 +477,19 @@ function showEndScreen() {
 
     const reminderT = gs.add.text(cardW / 2, y,
         'Smart answers start with smart questions.', {
-        fontFamily: 'Arial, sans-serif', fontSize: `${isDesktop ? 13 : 11}px`,
+        fontFamily: 'Arial, sans-serif',
+        fontSize: `${isDesktop ? 13 : 11}px`,
         color: '#00ffff', fontStyle: 'italic', align: 'center'
     }).setOrigin(0.5, 0);
     y += reminderT.displayHeight;
 
     const cardH = y + pad;
     const cardGfx = gs.add.graphics();
-    drawCard(cardGfx, cardW, cardH);
+    drawCardBg(cardGfx, cardW, cardH);
 
     const mc = gs.add.container(0, 0,
         [cardGfx, titleT, scoreT, msgT, statsT, replayBtn, reminderT]);
-    centerContainer(mc, cardW, cardH, width, height);
+    centerCard(mc, cardW, cardH, width, height);
 
     if (score === scenarioData.length) {
         createFireworks();
@@ -509,7 +497,7 @@ function showEndScreen() {
     }
 }
 
-// ── Audio + FX ───────────────────────────────────────────────────────────────
+// ── Audio / FX ───────────────────────────────────────────────────────────────
 function playSfx(note, duration) {
     if (Tone.context.state !== 'running') Tone.start();
     if (Array.isArray(note)) {

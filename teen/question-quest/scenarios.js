@@ -3,12 +3,12 @@ export const scenarioData = [
         id: 1,
         situation: "Your friend suddenly stops replying to your texts.",
         options: [
-            { text: "Why are they ignoring me?", type: "weak" },
+            { text: "They're probably mad at me — I should apologize and hope for the best.", type: "weak" },
             { text: "When did they stop replying, and is something happening in their life or between us?", type: "best" },
-            { text: "Should I just stop texting them forever?", type: "good" }
+            { text: "Maybe I'll give them some space and wait to see if they reach out first.", type: "good" }
         ],
         correctIndex: 1,
-        explanation: "This question combines the 'Details' (when it started) with 'Big Picture' (external life events or relationship context).",
+        explanation: "This question combines 'Details' (when it started) with 'Big Picture' (external life events or relationship context).",
         images: {
             pass1: 'assets/scenario_1_pass_1_friend_texts_anxious_night_window_cyber_skater_vibe.webp',
             pass2: 'assets/scenario_1_pass_2_friend_texts_calmer_clear_lighting_emotional_control.webp'
@@ -18,9 +18,9 @@ export const scenarioData = [
         id: 2,
         situation: "You got a low grade on a test you thought you understood.",
         options: [
-            { text: "Why is this teacher unfair?", type: "weak" },
+            { text: "The teacher probably graded it unfairly — I should ask them to recount my score.", type: "weak" },
             { text: "What kinds of questions did I miss, and how did I prepare compared to what the test required?", type: "best" },
-            { text: "Am I just bad at this subject?", type: "good" }
+            { text: "Maybe I'm just not cut out for this subject and should focus on something else.", type: "good" }
         ],
         correctIndex: 1,
         explanation: "By looking at 'Details' (specific missed questions) and the 'Big Picture' (your study habits vs. test requirements), you find a path to improve.",
@@ -33,9 +33,9 @@ export const scenarioData = [
         id: 3,
         situation: "Someone posts a rude comment about you online.",
         options: [
-            { text: "How do I embarrass them back?", type: "weak" },
+            { text: "They're clearly jealous — I should post something equally sharp right back at them.", type: "weak" },
             { text: "What exactly did they say, why might they have posted it, and what response would actually help?", type: "best" },
-            { text: "Why does everyone hate me?", type: "good" }
+            { text: "I should probably just block them and move on without giving it any more attention.", type: "good" }
         ],
         correctIndex: 1,
         explanation: "Separating 'Details' (the exact words) from 'Big Picture' (their motivation and the outcome of your response) prevents reactive mistakes.",
@@ -46,11 +46,11 @@ export const scenarioData = [
     },
     {
         id: 4,
-        situation: "You’re overwhelmed with homework and activities.",
+        situation: "You're overwhelmed with homework and activities.",
         options: [
-            { text: "Why is my life impossible?", type: "weak" },
+            { text: "Everything is piling up at once — I should ask my parents to talk to the school.", type: "weak" },
             { text: "What is due first, how long will each task take, and what matters most this week?", type: "best" },
-            { text: "Should I quit everything?", type: "good" }
+            { text: "I need to drop some activities because there's clearly way too much on my plate.", type: "good" }
         ],
         correctIndex: 1,
         explanation: "Using 'Details' (deadlines and task length) alongside 'Big Picture' (weekly priorities) clears the mental fog.",
@@ -63,9 +63,9 @@ export const scenarioData = [
         id: 5,
         situation: "Your friend wants you to skip school.",
         options: [
-            { text: "Would this be fun?", type: "weak" },
+            { text: "It could be a lot of fun and we probably won't get caught if we're careful.", type: "weak" },
             { text: "What happens today if I skip, and how could that affect trust, school, and my goals?", type: "best" },
-            { text: "Why do rules exist anyway?", type: "good" }
+            { text: "Rules exist for a reason, but maybe missing just one day won't really matter much.", type: "good" }
         ],
         correctIndex: 1,
         explanation: "You look at the immediate 'Details' (today's events) and the 'Big Picture' consequences for your future goals and trust.",
@@ -78,9 +78,9 @@ export const scenarioData = [
         id: 6,
         situation: "You hear a rumor about someone.",
         options: [
-            { text: "Is this dramatic?", type: "weak" },
-            { text: "What do I actually know, where did this come from, and so what if it’s false?", type: "best" },
-            { text: "Should I tell more people?", type: "good" }
+            { text: "This sounds pretty dramatic — it's probably just being exaggerated for attention anyway.", type: "weak" },
+            { text: "What do I actually know, where did this come from, and what happens if it turns out to be false?", type: "best" },
+            { text: "I should tell a few close friends just so they know what's going around the school.", type: "good" }
         ],
         correctIndex: 1,
         explanation: "Checking 'Details' (source and facts) and 'Big Picture' (consequences of it being false) keeps you from spreading misinformation.",
@@ -93,9 +93,9 @@ export const scenarioData = [
         id: 7,
         situation: "You want to join a club but feel unsure.",
         options: [
-            { text: "What if people judge me?", type: "weak" },
-            { text: "What is this club like, who’s in it, and how could joining help me grow?", type: "best" },
-            { text: "Should I avoid it?", type: "good" }
+            { text: "Everyone will probably judge me if I'm not already good at it before I even start.", type: "weak" },
+            { text: "What is this club like, who's in it, and how could joining help me grow?", type: "best" },
+            { text: "I should probably just watch from the sidelines for a while before deciding anything.", type: "good" }
         ],
         correctIndex: 1,
         explanation: "Combining 'Details' (who is in it) with 'Big Picture' (personal growth) helps you make a confident decision.",
@@ -108,9 +108,9 @@ export const scenarioData = [
         id: 8,
         situation: "You keep arguing with a parent.",
         options: [
-            { text: "Why are they so controlling?", type: "weak" },
+            { text: "They're being too controlling and don't trust me to make my own good decisions.", type: "weak" },
             { text: "What are they worried about, when do problems happen, and how could we make a plan?", type: "best" },
-            { text: "How do I win?", type: "good" }
+            { text: "If I stay calm and make my points clearly, I'll probably get what I want this time.", type: "good" }
         ],
         correctIndex: 1,
         explanation: "Understanding 'Details' (when it happens) and 'Big Picture' (their underlying worries) allows for real problem-solving.",
@@ -123,9 +123,9 @@ export const scenarioData = [
         id: 9,
         situation: "You feel left out seeing friends together online.",
         options: [
-            { text: "Why does nobody care about me?", type: "weak" },
-            { text: "What do I actually know, how often does this happen, and what’s a better response?", type: "best" },
-            { text: "Should I unfollow everyone?", type: "good" }
+            { text: "Obviously nobody actually cares about me — they clearly planned this without telling me on purpose.", type: "weak" },
+            { text: "What do I actually know, how often does this happen, and what's a better response?", type: "best" },
+            { text: "I should unfollow everyone for a while until I feel less bothered by seeing their posts.", type: "good" }
         ],
         correctIndex: 1,
         explanation: "Focusing on 'Details' (frequency) and 'Big Picture' (your overall reaction) helps you ground your emotions in reality.",
@@ -136,11 +136,11 @@ export const scenarioData = [
     },
     {
         id: 10,
-        situation: "You’re about to post something personal.",
+        situation: "You're about to post something personal.",
         options: [
-            { text: "Will this get attention?", type: "weak" },
-            { text: "Why do I want to post this, who will see it, and how might I feel later?", type: "best" },
-            { text: "Should I post now?", type: "good" }
+            { text: "I want people to see this and hopefully it'll get a lot of likes and comments.", type: "weak" },
+            { text: "Why do I want to post this, who will see it, and how might I feel about it later?", type: "best" },
+            { text: "I should post it now while the feeling is fresh before I talk myself out of it.", type: "good" }
         ],
         correctIndex: 1,
         explanation: "Thinking through 'Details' (who sees it) and 'Big Picture' (future feelings) ensures you're posting for the right reasons.",
