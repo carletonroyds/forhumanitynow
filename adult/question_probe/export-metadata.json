@@ -1,0 +1,16 @@
+{
+  "name": "Question Probe",
+  "revisionLabel": "Implement responsive layout and center game on all devices",
+  "description": "",
+  "mode": "Universal",
+  "exportDate": "2026-06-10T17:18:43.731Z",
+  "rosebudBuiltInSplash": {
+    "present": true,
+    "version": 1
+  },
+  "assetCount": 22,
+  "assetTypes": [
+    "image",
+    "audio"
+  ]
+}
