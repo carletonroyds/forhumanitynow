@@ -1,0 +1,15 @@
+{
+  "name": "Question Quest",
+  "revisionLabel": "Implement responsive scaling for mobile and tablet devices",
+  "description": "",
+  "mode": "Universal",
+  "exportDate": "2026-06-11T22:27:53.039Z",
+  "rosebudBuiltInSplash": {
+    "present": true,
+    "version": 1
+  },
+  "assetCount": 32,
+  "assetTypes": [
+    "image"
+  ]
+}

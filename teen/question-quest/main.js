@@ -92,11 +92,12 @@ function centerCard(container, cardW, cardH, width, height) {
     }
 }
 
-function drawCardBg(g, w, h, alpha = 0.88) {
+// alpha: 0.55 = semi-transparent (image shows through), 0.88 = solid
+function drawCardBg(g, w, h, alpha = 0.55) {
     g.clear();
     g.fillStyle(0x020208, alpha);
     g.fillRoundedRect(0, 0, w, h, 14);
-    g.lineStyle(1, 0x00ffff, 0.5);
+    g.lineStyle(1, 0x00ffff, 0.6);
     g.strokeRoundedRect(0, 0, w, h, 14);
 }
 
@@ -108,7 +109,7 @@ function drawBtnGfx(g, w, h, color, alpha) {
     g.strokeRoundedRect(-w / 2, -h / 2, w, h, 8);
 }
 
-/** Creates a button container. Returns { container, bg, label, w, h } */
+/** Creates a button. Returns { container, bg, label, w, h } */
 function makeBtn(x, y, text, w, minH, fontSize, callback) {
     const label = gs.add.text(0, 0, text, {
         fontFamily: 'Arial, sans-serif',
@@ -119,9 +120,9 @@ function makeBtn(x, y, text, w, minH, fontSize, callback) {
         wordWrap: { width: w - 28 }
     }).setOrigin(0.5);
 
-    const h = Math.max(minH, label.displayHeight + 22);
+    const h = Math.max(minH, label.displayHeight + 26);
     const bg = gs.add.graphics();
-    drawBtnGfx(bg, w, h, 0xff00ff, 0.08);
+    drawBtnGfx(bg, w, h, 0xff00ff, 0.12);
 
     const container = gs.add.container(x, y + h / 2, [bg, label]);
     container.setInteractive(
@@ -130,12 +131,12 @@ function makeBtn(x, y, text, w, minH, fontSize, callback) {
     );
     container.on('pointerover', () => {
         document.body.style.cursor = 'pointer';
-        drawBtnGfx(bg, w, h, 0x00ffff, 0.2);
+        drawBtnGfx(bg, w, h, 0x00ffff, 0.25);
         label.setColor('#ff00ff');
     });
     container.on('pointerout', () => {
         document.body.style.cursor = 'default';
-        drawBtnGfx(bg, w, h, 0xff00ff, 0.08);
+        drawBtnGfx(bg, w, h, 0xff00ff, 0.12);
         label.setColor('#00ffff');
     });
     container.on('pointerdown', () => {
@@ -155,7 +156,7 @@ function showStartScreen() {
     const subSz   = isDesktop ? 22 : isMid ? 17 : 13;
     const instrSz = isDesktop ? 16 : isMid ? 14 : 12;
     const btnSz   = isDesktop ? 22 : isMid ? 18 : 15;
-    const pad     = isDesktop ? 48 : 28;
+    const pad     = isDesktop ? 52 : 32;
     const cardW   = isDesktop ? Math.min(640, width * 0.85) : width * 0.92;
     const cw      = cardW - pad * 2;
     const btnH    = isDesktop ? 64 : 52;
@@ -178,7 +179,7 @@ function showStartScreen() {
         shadow: { blur: 18, color: '#00ffff', fill: true },
         wordWrap: { width: cw }
     }).setOrigin(0.5, 0);
-    y += title.displayHeight + 6;
+    y += title.displayHeight + 10;
 
     const sub = gs.add.text(cardW / 2, y, 'BIG PICTURE + DETAILS', {
         fontFamily: 'Arial, sans-serif',
@@ -187,7 +188,7 @@ function showStartScreen() {
         fontStyle: 'bold',
         align: 'center'
     }).setOrigin(0.5, 0);
-    y += sub.displayHeight + 14;
+    y += sub.displayHeight + 16;
 
     const instr = gs.add.text(cardW / 2, y,
         'Train your brain to ask questions that actually help', {
@@ -198,7 +199,7 @@ function showStartScreen() {
         align: 'center',
         wordWrap: { width: cw }
     }).setOrigin(0.5, 0);
-    y += instr.displayHeight + 28;
+    y += instr.displayHeight + 32;
 
     const { container: startBtn, h: sbH } = makeBtn(
         cardW / 2, y, 'START MISSION', btnW, btnH, btnSz,
@@ -208,7 +209,7 @@ function showStartScreen() {
 
     const cardH = y + pad;
     const cardGfx = gs.add.graphics();
-    drawCardBg(cardGfx, cardW, cardH);
+    drawCardBg(cardGfx, cardW, cardH, 0.88); // start screen: solid
 
     const mc = gs.add.container(0, 0, [cardGfx, title, sub, instr, startBtn]);
     centerCard(mc, cardW, cardH, width, height);
@@ -233,10 +234,13 @@ function loadScenario() {
     const promptSz = isDesktop ? 15 : isMid ? 13 : 12;
     const btnSz    = isDesktop ? 17 : isMid ? 15 : 13;
     const hudSz    = isDesktop ? 15 : 13;
-    const pad      = isDesktop ? 36 : 20;
+    // Extra padding for roomier card
+    const pad      = isDesktop ? 44 : 26;
+    const gapSm    = isDesktop ? 14 : 10;  // small gap between elements
+    const gapMd    = isDesktop ? 22 : 16;  // medium gap
     const cardW    = isDesktop ? Math.min(760, width * 0.88) : width * 0.95;
     const cw       = cardW - pad * 2;
-    const minBtnH  = isDesktop ? 54 : isMid ? 48 : 42;
+    const minBtnH  = isDesktop ? 58 : isMid ? 52 : 46;
 
     // ── Full-bleed background image ──────────────────────────────────────────
     const imgKey = isSecondPass
@@ -244,23 +248,21 @@ function loadScenario() {
         : `scen_${currentScenarioIndex}_p1`;
 
     const scenImg = gs.add.image(width / 2, height / 2, imgKey);
-    // Scale to cover the full viewport at the image's native aspect ratio
-    const imgScaleX = width / scenImg.width;
-    const imgScaleY = height / scenImg.height;
-    scenImg.setScale(Math.max(imgScaleX, imgScaleY));
+    const imgScale = Math.max(width / scenImg.width, height / scenImg.height);
+    scenImg.setScale(imgScale);
 
     if (gs.renderer.type === Phaser.WEBGL) scenImg.setPostPipeline('GrayscalePostFX');
     else scenImg.setTint(0x777777);
 
-    // Dark overlay so card text remains readable
+    // Subtle dark overlay — light enough that image still reads through card
     const overlay = gs.add.graphics();
-    overlay.fillStyle(0x000000, 0.60);
+    overlay.fillStyle(0x000000, 0.45);
     overlay.fillRect(0, 0, width, height);
 
-    // ── Card overlaid on top ─────────────────────────────────────────────────
+    // ── Card (semi-transparent — image shows through) ────────────────────────
     let y = pad;
 
-    // HUD row
+    // HUD
     const progressT = gs.add.text(pad, y,
         `Question ${currentScenarioIndex + 1} / ${scenarioData.length}`, {
         fontFamily: 'Arial, sans-serif', fontSize: `${hudSz}px`,
@@ -272,7 +274,13 @@ function loadScenario() {
         color: '#ff00ff', fontStyle: 'bold'
     }).setOrigin(1, 0);
 
-    y += Math.max(progressT.displayHeight, streakT.displayHeight) + 16;
+    y += Math.max(progressT.displayHeight, streakT.displayHeight) + gapMd;
+
+    // Divider under HUD
+    const divTop = gs.add.graphics();
+    divTop.lineStyle(1, 0x00ffff, 0.25);
+    divTop.lineBetween(pad, y, cardW - pad, y);
+    y += gapMd;
 
     // Situation
     const sitT = gs.add.text(cardW / 2, y, data.situation, {
@@ -280,7 +288,7 @@ function loadScenario() {
         color: '#ffffff', fontStyle: 'bold', align: 'center',
         wordWrap: { width: cw }
     }).setOrigin(0.5, 0);
-    y += sitT.displayHeight + 10;
+    y += sitT.displayHeight + gapSm;
 
     // Prompt
     const promptT = gs.add.text(cardW / 2, y,
@@ -289,9 +297,9 @@ function loadScenario() {
         color: '#ffd900', fontStyle: 'italic', align: 'center',
         wordWrap: { width: cw }
     }).setOrigin(0.5, 0);
-    y += promptT.displayHeight + 16;
+    y += promptT.displayHeight + gapMd;
 
-    // Answer buttons (shuffled)
+    // Answer buttons
     const shuffled = Phaser.Utils.Array.Shuffle([...data.options]);
     const optBtns = [];
     shuffled.forEach(opt => {
@@ -299,17 +307,19 @@ function loadScenario() {
         result = makeBtn(cardW / 2, y, opt.text, cw, minBtnH, btnSz,
             () => handleChoice(opt, result.container));
         result.container.y = y + result.h / 2;
-        y += result.h + 8;
+        y += result.h + 10;
         optBtns.push(result.container);
     });
     currentOptionBtns = optBtns;
 
+    y += 4; // bottom breathing room
     const cardH = y + pad;
+
     const cardGfx = gs.add.graphics();
-    drawCardBg(cardGfx, cardW, cardH, 0.82);
+    drawCardBg(cardGfx, cardW, cardH, 0.55); // semi-transparent
 
     const mc = gs.add.container(0, 0,
-        [cardGfx, progressT, streakT, sitT, promptT, ...optBtns]);
+        [cardGfx, progressT, streakT, divTop, sitT, promptT, ...optBtns]);
     centerCard(mc, cardW, cardH, width, height);
 }
 
@@ -342,7 +352,9 @@ function showFeedback(data, isCorrect) {
     const headSz   = isDesktop ? 15 : isMid ? 13 : 12;
     const bodySz   = isDesktop ? 14 : isMid ? 12 : 11;
     const btnSz    = isDesktop ? 18 : isMid ? 16 : 14;
-    const pad      = isDesktop ? 40 : 24;
+    const pad      = isDesktop ? 44 : 28;
+    const gapSm    = isDesktop ? 12 : 8;
+    const gapMd    = isDesktop ? 20 : 14;
     const cardW    = isDesktop ? Math.min(720, width * 0.88) : width * 0.95;
     const cw       = cardW - pad * 2;
     const btnH     = isDesktop ? 58 : 50;
@@ -360,12 +372,12 @@ function showFeedback(data, isCorrect) {
         fontStyle: 'bold', color: isCorrect ? '#00ff88' : '#ff4444',
         align: 'center'
     }).setOrigin(0.5, 0);
-    y += statusT.displayHeight + 14;
+    y += statusT.displayHeight + gapMd;
 
     const div = gs.add.graphics();
     div.lineStyle(1, 0x00ffff, 0.3);
     div.lineBetween(pad, y, cardW - pad, y);
-    y += 16;
+    y += gapMd;
 
     const sections = [
         { head: 'Big Picture', body: 'Wider context, patterns, goals, and consequences.' },
@@ -378,17 +390,16 @@ function showFeedback(data, isCorrect) {
             fontFamily: 'Arial, sans-serif', fontSize: `${headSz}px`,
             color: '#ff00ff', fontStyle: 'bold'
         }).setOrigin(0, 0);
-        y += headT.displayHeight + 3;
+        y += headT.displayHeight + 4;
 
         const bodyT = gs.add.text(pad, y, sec.body, {
             fontFamily: 'Arial, sans-serif', fontSize: `${bodySz}px`,
             color: '#ccffff', wordWrap: { width: cw }
         }).setOrigin(0, 0);
-        y += bodyT.displayHeight + 14;
+        y += bodyT.displayHeight + gapMd;
         items.push(headT, bodyT);
     });
 
-    y += 4;
     const isLast = currentScenarioIndex >= scenarioData.length - 1;
     const { container: nextBtn, h: nbH } = makeBtn(
         cardW / 2, y,
@@ -400,7 +411,7 @@ function showFeedback(data, isCorrect) {
 
     const cardH = y + pad;
     const cardGfx = gs.add.graphics();
-    drawCardBg(cardGfx, cardW, cardH);
+    drawCardBg(cardGfx, cardW, cardH, 0.92); // feedback: mostly solid for readability
 
     const mc = gs.add.container(0, 0, [cardGfx, statusT, div, ...items, nextBtn]);
     centerCard(mc, cardW, cardH, width, height);
@@ -422,7 +433,7 @@ function showEndScreen() {
     const msgSz   = isDesktop ? 17 : isMid ? 14 : 12;
     const statsSz = isDesktop ? 19 : isMid ? 15 : 13;
     const btnSz   = isDesktop ? 20 : isMid ? 17 : 14;
-    const pad     = isDesktop ? 44 : 28;
+    const pad     = isDesktop ? 52 : 32;
     const cardW   = isDesktop ? Math.min(640, width * 0.85) : width * 0.92;
     const cw      = cardW - pad * 2;
     const btnH    = isDesktop ? 60 : 52;
@@ -440,14 +451,14 @@ function showEndScreen() {
         shadow: { blur: 14, color: '#00ffff', fill: true },
         wordWrap: { width: cw }
     }).setOrigin(0.5, 0);
-    y += titleT.displayHeight + 10;
+    y += titleT.displayHeight + 14;
 
     const scoreT = gs.add.text(cardW / 2, y,
         `Final Score: ${score} / ${scenarioData.length}`, {
         fontFamily: 'Arial, sans-serif', fontSize: `${scoreSz}px`,
         color: '#ff00ff', fontStyle: 'bold', align: 'center'
     }).setOrigin(0.5, 0);
-    y += scoreT.displayHeight + 10;
+    y += scoreT.displayHeight + 12;
 
     const message = score <= 3
         ? "You're just getting started. Try again and level up."
@@ -461,19 +472,19 @@ function showEndScreen() {
         fontFamily: 'Arial, sans-serif', fontSize: `${msgSz}px`,
         color: '#ffffff', align: 'center', wordWrap: { width: cw }
     }).setOrigin(0.5, 0);
-    y += msgT.displayHeight + 10;
+    y += msgT.displayHeight + 12;
 
     const statsT = gs.add.text(cardW / 2, y, `Max Streak: ${maxStreak}`, {
         fontFamily: 'Arial, sans-serif', fontSize: `${statsSz}px`,
         color: '#ffd900', fontStyle: 'bold', align: 'center'
     }).setOrigin(0.5, 0);
-    y += statsT.displayHeight + 24;
+    y += statsT.displayHeight + 28;
 
     const { container: replayBtn, h: rbH } = makeBtn(
         cardW / 2, y, 'REPLAY MISSION', btnW, btnH, btnSz,
         () => { isSecondPass = true; startQuest(); }
     );
-    y += rbH + 14;
+    y += rbH + 16;
 
     const reminderT = gs.add.text(cardW / 2, y,
         'Smart answers start with smart questions.', {
@@ -485,7 +496,7 @@ function showEndScreen() {
 
     const cardH = y + pad;
     const cardGfx = gs.add.graphics();
-    drawCardBg(cardGfx, cardW, cardH);
+    drawCardBg(cardGfx, cardW, cardH, 0.88);
 
     const mc = gs.add.container(0, 0,
         [cardGfx, titleT, scoreT, msgT, statsT, replayBtn, reminderT]);
