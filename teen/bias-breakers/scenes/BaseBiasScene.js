@@ -193,14 +193,16 @@ export class BaseBiasScene extends Phaser.Scene {
             ...this.optionButtons.map(b => b.container)
         ]);
 
-        const maxH = height * 0.96;
+        // Reserve space below the card for the NEXT button
+        const btnReserve = isDesktop ? 90 : 74;
+        const maxH = height - btnReserve;
         let cardScale = 1;
         if (cardH > maxH) {
             cardScale = maxH / cardH;
             mc.setScale(cardScale);
-            mc.setPosition((width - cardW * cardScale) / 2, (height - cardH * cardScale) / 2);
+            mc.setPosition((width - cardW * cardScale) / 2, (height - cardH * cardScale - btnReserve) / 2);
         } else {
-            mc.setPosition((width - cardW) / 2, (height - cardH) / 2);
+            mc.setPosition((width - cardW) / 2, (height - cardH - btnReserve) / 2);
         }
 
         this._cardCenterX = width / 2;

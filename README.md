@@ -7,7 +7,7 @@ Browser-based educational games built to develop critical thinking, self-awarene
 ## Teens
 
 ### Bias Breakers
-**Path:** `teen/bias_breakers/`
+**Path:** `teen/bias-breakers/`
 **Entry:** `index.html`
 
 A cyberpunk-styled quiz game where players identify cognitive biases playing out in everyday scenarios. Each of the 10 rounds presents a situation and three answer choices — players select the one that best demonstrates the bias being explored. Correct and incorrect answers are highlighted immediately, and missed biases are listed on the results screen.
@@ -62,7 +62,7 @@ A React-based game focused on workplace and interpersonal communication. Players
 Each game is a standalone set of static files. Serve any game folder with a local static server, for example:
 
 ```bash
-npx serve teen/bias_breakers
+npx serve teen/bias-breakers
 npx serve teen/question-quest
 npx serve adult/bias-awareness
 npx serve adult/question_probe
