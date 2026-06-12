@@ -1,0 +1,16 @@
+{
+  "name": "Bias Master",
+  "revisionLabel": "Align app container to top of viewport",
+  "description": "",
+  "mode": "Universal",
+  "exportDate": "2026-06-11T07:18:38.581Z",
+  "rosebudBuiltInSplash": {
+    "present": true,
+    "version": 1
+  },
+  "assetCount": 28,
+  "assetTypes": [
+    "image",
+    "audio"
+  ]
+}
