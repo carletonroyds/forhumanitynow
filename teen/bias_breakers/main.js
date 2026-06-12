@@ -8,17 +8,16 @@ import * as BiasScreens from './scenes/BiasScreens.js';
 const config = {
     type: Phaser.AUTO,
     scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
-        width: 1920,
-        height: 1080
+        mode: Phaser.Scale.RESIZE,
+        parent: 'game-container',
+        width: '100%',
+        height: '100%'
     },
-    backgroundColor: '#000000',
-    parent: 'game-container',
+    backgroundColor: '#050505',
     scene: [
-        BootScene, 
-        PreloadScene, 
-        MenuScene, 
+        BootScene,
+        PreloadScene,
+        MenuScene,
         ResultScene,
         BiasScreens.ConfirmationBiasScene,
         BiasScreens.LossAversionScene,
