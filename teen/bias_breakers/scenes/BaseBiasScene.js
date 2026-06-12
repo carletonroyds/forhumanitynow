@@ -194,17 +194,17 @@ export class BaseBiasScene extends Phaser.Scene {
         ]);
 
         const maxH = height * 0.96;
+        let cardScale = 1;
         if (cardH > maxH) {
-            const s = maxH / cardH;
-            mc.setScale(s);
-            mc.setPosition((width - cardW * s) / 2, (height - cardH * s) / 2);
+            cardScale = maxH / cardH;
+            mc.setScale(cardScale);
+            mc.setPosition((width - cardW * cardScale) / 2, (height - cardH * cardScale) / 2);
         } else {
             mc.setPosition((width - cardW) / 2, (height - cardH) / 2);
         }
 
-        this._mc = mc;
-        this._cardW = cardW;
-        this._cardH = cardH;
+        this._cardCenterX = width / 2;
+        this._cardBottom  = mc.y + cardH * cardScale;
     }
 
     drawButton(graphics, w, h, color, alpha) {
@@ -244,11 +244,14 @@ export class BaseBiasScene extends Phaser.Scene {
     }
 
     showNextButton() {
-        const { width, height } = this.scale;
+        const { width } = this.scale;
         const isDesktop = width >= 900;
         const btnW = isDesktop ? 200 : 160;
         const btnH = isDesktop ? 56 : 48;
         const btnSz = isDesktop ? 22 : 18;
+        const gap   = isDesktop ? 16 : 12;
+
+        const targetY = this._cardBottom + gap + btnH / 2;
 
         const bg = this.add.graphics();
         this.drawButton(bg, btnW, btnH, 0xff00ff, 0.20);
@@ -259,7 +262,8 @@ export class BaseBiasScene extends Phaser.Scene {
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
-        const btn = this.add.container(width - btnW / 2 - 20, height + btnH, [bg, label]);
+        const btn = this.add.container(this._cardCenterX, targetY - 20, [bg, label]);
+        btn.setAlpha(0);
         btn.setInteractive(
             new Phaser.Geom.Rectangle(-btnW / 2, -btnH / 2, btnW, btnH),
             Phaser.Geom.Rectangle.Contains
@@ -287,8 +291,9 @@ export class BaseBiasScene extends Phaser.Scene {
 
         this.tweens.add({
             targets: btn,
-            y: height - btnH / 2 - 20,
-            duration: 450,
+            y: targetY,
+            alpha: 1,
+            duration: 350,
             ease: 'Back.easeOut'
         });
     }
