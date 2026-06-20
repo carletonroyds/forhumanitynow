@@ -6,7 +6,7 @@
 <title>How You Like To Act Quiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Andika:wght@700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet" />
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -64,8 +64,9 @@
   }
 
   .landing-title {
+    font-family: 'Andika', sans-serif;
     font-size: clamp(28px, 6vw, 40px);
-    font-weight: 800;
+    font-weight: 700;
     color: var(--text);
     text-align: center;
     line-height: 1.15;
@@ -484,16 +485,35 @@
 
 <!-- LANDING -->
 <div class="screen active" id="screen-landing">
-  <div class="landing-icon">🎨</div>
   <h1 class="landing-title">How You Like To Act</h1>
   <p class="landing-sub">10 quick questions. Find out which color matches how you think and act.</p>
+
   <div class="instruction-card">
-    <p>Pick what feels <strong>most like you</strong>.</p>
+    <p>Pick the answer that feels <strong>most like you</strong>.</p>
     <p style="margin-top: 8px;">Go with your first answer — there are no wrong ones!</p>
   </div>
   <button class="btn-primary" onclick="startQuiz()">
     Let's find out <span>→</span>
   </button>
+
+  <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; width:100%; margin-top:28px;">
+    <div style="background:#2B6CB0; border:1px solid #1A4A80; border-radius:16px; padding:14px 10px; display:flex; flex-direction:column; align-items:center; gap:5px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#BED8F5;">Blue</span>
+      <span style="font-size:12px; font-weight:700; color:#EEF5FF; text-align:center; line-height:1.3;">The Careful Builder</span>
+    </div>
+    <div style="background:#6B21A8; border:1px solid #4A1275; border-radius:16px; padding:14px 10px; display:flex; flex-direction:column; align-items:center; gap:5px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#DDB8F5;">Purple</span>
+      <span style="font-size:12px; font-weight:700; color:#F5EEFF; text-align:center; line-height:1.3;">Go-With-The-Flow</span>
+    </div>
+    <div style="background:#E8B800; border:1px solid #C49A00; border-radius:16px; padding:14px 10px; display:flex; flex-direction:column; align-items:center; gap:5px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#7A5800;">Yellow</span>
+      <span style="font-size:12px; font-weight:700; color:#4A3400; text-align:center; line-height:1.3;">The Idea Explorer</span>
+    </div>
+    <div style="background:#C01A1A; border:1px solid #8C0C0C; border-radius:16px; padding:14px 10px; display:flex; flex-direction:column; align-items:center; gap:5px;">
+      <span style="font-size:9px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#FFB8B8;">Red</span>
+      <span style="font-size:12px; font-weight:700; color:#FFEDED; text-align:center; line-height:1.3;">The Action Leader</span>
+    </div>
+  </div>
 </div>
 
 <!-- QUIZ -->
