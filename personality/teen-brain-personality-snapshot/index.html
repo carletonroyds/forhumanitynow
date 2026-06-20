@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brain Personality Snapshot — Teen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito:wght@700;800;900&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #FFFFFF;
+  --bg2: #DDE5DE;
+  --border: rgba(31,41,55,0.08);
+  --border-mid: rgba(31,41,55,0.15);
+  --text: #1F2937;
+  --text-muted: #9CA3AF;
+  --text-mid: #6B7280;
+  --accent: #B8860B;
+  --accent-dim: rgba(184,134,11,0.12);
+  --accent-border: rgba(184,134,11,0.4);
+  --radius-card: 28px;
+
+  --blue-bg: #2B6CB0;
+  --blue-border: #1A4A80;
+  --blue-text: #EEF5FF;
+  --blue-label: #BED8F5;
+  --blue-muted: rgba(238,245,255,0.75);
+
+  --purple-bg: #6B21A8;
+  --purple-border: #4A1275;
+  --purple-text: #F5EEFF;
+  --purple-label: #DDB8F5;
+  --purple-muted: rgba(245,238,255,0.75);
+
+  --yellow-bg: #E8B800;
+  --yellow-border: #C49A00;
+  --yellow-text: #FFFBE0;
+  --yellow-label: #FFF0A0;
+  --yellow-muted: rgba(255,251,224,0.85);
+
+  --red-bg: #C01A1A;
+  --red-border: #8C0C0C;
+  --red-text: #FFEDED;
+  --red-label: #FFB8B8;
+  --red-muted: rgba(255,237,237,0.75);
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.screen { display: none; width: 100%; max-width: 640px; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+/* ── LANDING ── */
+.landing-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.landing-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(32px, 6.5vw, 52px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.landing-title em {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.landing-sub {
+  font-size: clamp(14px, 2.5vw, 16px);
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.7;
+  margin-bottom: 36px;
+  max-width: 400px;
+}
+
+.color-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.color-preview-tile {
+  border-radius: 16px;
+  padding: 16px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid transparent;
+  transition: transform 0.2s ease;
+}
+.color-preview-tile:hover { transform: translateY(-2px); }
+
+.tile-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.tile-name {
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.instruction-pill {
+  background: var(--bg2);
+  border-radius: 100px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-mid);
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+/* ── BUTTONS ── */
+.btn-primary {
+  background: #1F2937;
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  padding: 15px 36px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 12px rgba(31,41,55,0.22), 0 1px 3px rgba(31,41,55,0.1);
+}
+.btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-primary:active { transform: scale(0.97); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-mid);
+  border: 1.5px solid var(--border-mid);
+  border-radius: 100px;
+  padding: 13px 28px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-ghost:hover { background: var(--bg2); color: var(--text); border-color: rgba(31,41,55,0.25); box-shadow: 0 2px 8px rgba(31,41,55,0.08); }
+.btn-ghost:disabled { opacity: 0.25; cursor: not-allowed; }
+
+/* ── QUIZ ── */
+.quiz-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.q-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.q-instinct {
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 3px;
+  background: rgba(31,41,55,0.08);
+  border-radius: 3px;
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+.question-card {
+  background: var(--bg2);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  padding: clamp(24px, 5vw, 44px);
+  width: 100%;
+  transition: transform 0.24s cubic-bezier(0.4,0,0.2,1), opacity 0.24s ease;
+}
+
+.question-card.slide-out { transform: translateX(-44px); opacity: 0; }
+.question-card.slide-in { transform: translateX(44px); opacity: 0; }
+.question-card.slide-back-out { transform: translateX(44px); opacity: 0; }
+.question-card.slide-back-in { transform: translateX(-44px); opacity: 0; }
+.question-card.visible { transform: translateX(0); opacity: 1; }
+
+.q-dimension {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.q-text {
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(20px, 4vw, 27px);
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.25;
+  margin-bottom: 32px;
+}
+
+.choices-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.choice-btn {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 100px;
+  padding: 15px 22px;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(13px, 2.5vw, 15px);
+  font-weight: 600;
+  color: var(--text-mid);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.16s ease;
+  box-shadow: 0 2px 8px rgba(31,41,55,0.05);
+}
+
+.choice-btn:hover:not(.selected):not(.confirmed) {
+  border-color: var(--accent-border);
+  background: var(--accent-dim);
+  color: var(--text);
+  transform: translateX(4px);
+}
+
+.choice-btn.selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--text);
+  transform: translateX(4px);
+}
+
+.choice-btn.confirmed {
+  border-color: #4CAF50;
+  background: #F0FBF0;
+  color: #2E7D32;
+}
+
+.choice-badge {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(200,146,42,0.12);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.16s ease;
+  font-family: 'Nunito', sans-serif;
+}
+
+.choice-btn.selected .choice-badge { background: var(--accent); color: white; }
+.choice-btn.confirmed .choice-badge { background: #4CAF50; color: white; }
+
+.choice-middle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+  opacity: 0.4;
+}
+.choice-middle-line { flex: 1; height: 1px; background: var(--border); }
+.choice-middle span { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+
+.quiz-footer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 16px;
+}
+
+/* ── RESULT ── */
+.result-card {
+  border-radius: var(--radius-card);
+  padding: clamp(28px, 5vw, 48px);
+  width: 100%;
+  border: 1.5px solid transparent;
+  box-shadow: 0 4px 32px rgba(31,41,55,0.08);
+  animation: resultReveal 0.5s cubic-bezier(0.34,1.4,0.64,1) forwards;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes resultReveal {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.result-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+
+.result-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  opacity: 0.65;
+}
+
+.result-name {
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(34px, 7vw, 54px);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.result-tagline {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: clamp(15px, 2.8vw, 19px);
+  line-height: 1.55;
+  margin-bottom: 18px;
+  color: rgba(255,255,255,0.75);
+}
+
+.result-desc {
+  font-size: clamp(14px, 2.5vw, 16px);
+  line-height: 1.75;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 28px;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 480px) {
+  .insight-grid { grid-template-columns: 1fr; }
+  .color-preview-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.insight-box {
+  background: rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.insight-box-full {
+  background: rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 18px 22px;
+  border: 1px solid rgba(255,255,255,0.2);
+  margin-bottom: 28px;
+}
+
+.insight-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  opacity: 0.5;
+  color: #fff;
+}
+
+.insight-value {
+  font-size: clamp(13px, 2.4vw, 14px);
+  font-weight: 600;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.95);
+}
+
+.insight-value.italic {
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(13px, 2.4vw, 14px);
+  line-height: 1.7;
+  color: rgba(255,255,255,0.8);
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── CONFETTI ── */
+.confetti-wrap {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  border-radius: 2px;
+  animation: confettiFall linear forwards;
+  top: -20px;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@media (max-width: 600px) {
+  body { padding: 16px; justify-content: flex-start; padding-top: 36px; }
+  .screen { max-width: 100%; }
+}
+
+@media (min-width: 900px) {
+  .screen { max-width: 640px; }
+}
+</style>
+</head>
+<body>
+
+<div class="confetti-wrap" id="confetti"></div>
+
+<!-- LANDING -->
+<div class="screen active" id="screen-landing">
+  <div class="landing-eyebrow">Brain Personality Snapshot</div>
+  <h1 class="landing-title">10 questions.<br><em>Which color are you?</em></h1>
+  <p class="landing-sub">Find out how your brain works,<br>and what makes you, you.</p>
+
+  <div class="instruction-pill">Pick the answer that feels most like you — no wrong answers!</div>
+
+  <button class="btn-primary" onclick="startQuiz()">Let's find out →</button>
+
+  <div class="color-preview-grid" style="margin-top:28px; margin-bottom:0;">
+    <div class="color-preview-tile" style="background:#2B6CB0; border-color:#1A4A80;">
+      <span class="tile-label" style="color:#BED8F5;">Blue</span>
+      <span class="tile-name" style="color:#EEF5FF;">The Architect</span>
+    </div>
+    <div class="color-preview-tile" style="background:#6B21A8; border-color:#4A1275;">
+      <span class="tile-label" style="color:#DDB8F5;">Purple</span>
+      <span class="tile-name" style="color:#F5EEFF;">The Connector</span>
+    </div>
+    <div class="color-preview-tile" style="background:#E8B800; border-color:#C49A00;">
+      <span class="tile-label" style="color:#7A5800;">Yellow</span>
+      <span class="tile-name" style="color:#4A3400;">The Visionary</span>
+    </div>
+    <div class="color-preview-tile" style="background:#C01A1A; border-color:#8C0C0C;">
+      <span class="tile-label" style="color:#FFB8B8;">Red</span>
+      <span class="tile-name" style="color:#FFEDED;">The Spark</span>
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="screen-quiz">
+  <div class="quiz-header">
+    <span class="q-label" id="q-counter">Question 1 of 10</span>
+    <span class="q-instinct">Go with your gut ✨</span>
+  </div>
+
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progress-fill" style="width:10%"></div>
+  </div>
+
+  <div style="width:100%; overflow:hidden;">
+    <div class="question-card visible" id="question-card">
+      <div class="q-dimension" id="q-dimension"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="choices-col" id="q-choices"></div>
+    </div>
+  </div>
+
+  <div class="quiz-footer">
+    <button class="btn-ghost" id="btn-back" onclick="goBack()" disabled>← Back</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="screen-result">
+  <div class="result-card" id="result-card">
+    <div class="result-eyebrow" id="r-eyebrow"></div>
+    <div class="result-name" id="r-name"></div>
+    <div class="result-tagline" id="r-tagline"></div>
+    <div class="result-desc" id="r-desc"></div>
+
+    <div class="insight-grid">
+      <div class="insight-box">
+        <div class="insight-label">How You Think</div>
+        <div class="insight-value" id="r-insight"></div>
+      </div>
+      <div class="insight-box">
+        <div class="insight-label">Keep In Mind</div>
+        <div class="insight-value" id="r-awareness"></div>
+      </div>
+    </div>
+
+    <div style="height:10px;"></div>
+
+    <div class="insight-box-full">
+      <div class="insight-label">Quick Tip</div>
+      <div class="insight-value italic" id="r-practical"></div>
+    </div>
+
+    <div class="result-actions">
+      <button onclick="retakeQuiz()" style="background:rgba(255,255,255,0.2); color:#fff; border:1.5px solid rgba(255,255,255,0.35); border-radius:100px; padding:13px 28px; font-family:'Nunito',sans-serif; font-size:15px; font-weight:800; cursor:pointer; transition:all 0.15s ease; display:inline-flex; align-items:center; gap:6px;">↺ Try Again</button>
+      <button onclick="shareResult()" style="background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); border:1.5px solid rgba(255,255,255,0.2); border-radius:100px; padding:13px 28px; font-family:'Inter',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.15s ease; display:inline-flex; align-items:center; gap:6px;">Share my color</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { dimension:"Energy", text:"How do you recharge your energy?", left:"Solo time", right:"Being around people" },
+  { dimension:"Decisions", text:"How do you make big choices?", left:"Think it through", right:"Follow my gut" },
+  { dimension:"Focus", text:"What do you notice first?", left:"Small details", right:"The whole vibe" },
+  { dimension:"Attention", text:"How's your focus usually?", left:"I stay on task", right:"I get distracted easily" },
+  { dimension:"Risk", text:"How do you feel about uncertainty?", left:"Play it safe", right:"Bring it on" },
+  { dimension:"Projects", text:"When you have a project...", left:"I'm great at starting", right:"I'm great at finishing" },
+  { dimension:"Mindset", text:"How do you see your own abilities?", left:"I can always improve", right:"I'm just wired this way" },
+  { dimension:"Social", text:"In a group, do you care more about...", left:"Everyone's feelings", right:"Getting things done" },
+  { dimension:"Outlook", text:"How do you see things?", left:"Glass half-empty", right:"Glass half-full" },
+  { dimension:"Work style", text:"How do you like to get stuff done?", left:"Freestyle it", right:"Step by step" }
+];
+
+const PERSONALITIES = {
+  Blue: {
+    eyebrow:"Your brain color is Blue",
+    name:"The Architect",
+    tagline:"Organized, reliable, and always with a plan.",
+    desc:"You're super organized and great at following through. People know they can count on you to get things done right.",
+    insight:"Focused planning — you think in systems and steps.",
+    awareness:"Watch out for getting stuck on tiny details.",
+    practical:"Balance being careful with moving fast. Don't let wanting everything perfect slow you down.",
+    bg:"var(--blue-bg)", border:"var(--blue-border)", text:"var(--blue-text)",
+    label:"var(--blue-label)", muted:"var(--blue-muted)"
+  },
+  Purple: {
+    eyebrow:"Your brain color is Purple",
+    name:"The Connector",
+    tagline:"Chill, flexible, and great at bringing people together.",
+    desc:"You're great at reading the room and bringing people and ideas together. You can see every side of a situation.",
+    insight:"Social balance — you move between thinking and feeling.",
+    awareness:"You might hesitate when choices feel half and half.",
+    practical:"Trust your gut when you aren't sure. Your superpower is seeing how everything fits.",
+    bg:"var(--purple-bg)", border:"var(--purple-border)", text:"var(--purple-text)",
+    label:"var(--purple-label)", muted:"var(--purple-muted)"
+  },
+  Yellow: {
+    eyebrow:"Your brain color is Yellow",
+    name:"The Visionary",
+    tagline:"Curious, creative, and full of big ideas.",
+    desc:"You're always coming up with new ideas and love trying new things. You bring the spark that gets things started.",
+    insight:"Pure imagination — your brain connects ideas in cool ways.",
+    awareness:"You might start things and forget to finish them.",
+    practical:"Team up with people who finish tasks to make your big ideas real. Try to focus on one thing at a time.",
+    bg:"var(--yellow-bg)", border:"var(--yellow-border)", text:"var(--yellow-text)",
+    label:"var(--yellow-label)", muted:"var(--yellow-muted)"
+  },
+  Red: {
+    eyebrow:"Your brain color is Red",
+    name:"The Spark",
+    tagline:"Fast, decisive, and always making things happen.",
+    desc:"You move fast and aren't afraid to take charge. When something needs to happen, you make it happen.",
+    insight:"Quick momentum — your brain is wired to act fast.",
+    awareness:"You might skip small details or forget to check in with others.",
+    practical:"Slow down a bit and listen to others. Small details can save you from big mistakes later.",
+    bg:"var(--red-bg)", border:"var(--red-border)", text:"var(--red-text)",
+    label:"var(--red-label)", muted:"var(--red-muted)"
+  }
+};
+
+let currentQ = 0;
+let answers = new Array(10).fill(null);
+let isAnimating = false;
+
+function startQuiz() {
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  document.getElementById('q-counter').textContent = `Question ${currentQ + 1} of ${QUESTIONS.length}`;
+  document.getElementById('q-dimension').textContent = q.dimension;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('progress-fill').style.width = `${((currentQ + 1) / QUESTIONS.length) * 100}%`;
+  document.getElementById('btn-back').disabled = currentQ === 0;
+
+  const choices = document.getElementById('q-choices');
+  choices.innerHTML = '';
+
+  const defs = [
+    { value:1, label:'A', text:q.left },
+    { value:2, label:'·', text:'Both / In-between' },
+    { value:3, label:'B', text:q.right }
+  ];
+
+  defs.forEach((d, idx) => {
+    const btn = document.createElement('button');
+    const isSelected = answers[currentQ] === d.value;
+    btn.className = 'choice-btn' + (isSelected ? ' selected' : '');
+    btn.innerHTML = `<span class="choice-badge">${d.label}</span>${d.text}`;
+    btn.onclick = () => selectAnswer(d.value, btn);
+    choices.appendChild(btn);
+  });
+}
+
+function selectAnswer(value, btnEl) {
+  if (isAnimating) return;
+  answers[currentQ] = value;
+
+  document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected','confirmed'));
+  btnEl.classList.add('confirmed');
+  const badge = btnEl.querySelector('.choice-badge');
+  if (badge) badge.textContent = '✓';
+
+  setTimeout(() => {
+    if (currentQ < QUESTIONS.length - 1) {
+      animateNext(false);
+    } else {
+      showResult();
+    }
+  }, 280);
+}
+
+function animateNext(isBack) {
+  if (isAnimating) return;
+  isAnimating = true;
+  const card = document.getElementById('question-card');
+  card.classList.remove('visible','slide-out','slide-in','slide-back-out','slide-back-in');
+  card.classList.add(isBack ? 'slide-back-out' : 'slide-out');
+
+  setTimeout(() => {
+    if (isBack) currentQ--; else currentQ++;
+    card.classList.remove('slide-out','slide-back-out');
+    card.classList.add(isBack ? 'slide-back-in' : 'slide-in');
+    renderQuestion();
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      card.classList.remove('slide-in','slide-back-in');
+      card.classList.add('visible');
+      isAnimating = false;
+    }));
+  }, 200);
+}
+
+function goBack() {
+  if (currentQ === 0 || isAnimating) return;
+  animateNext(true);
+}
+
+function getResult() {
+  const total = answers.reduce((s,v) => s + (v||0), 0);
+  if (total <= 12) return 'Blue';
+  if (total <= 18) return 'Purple';
+  if (total <= 24) return 'Yellow';
+  return 'Red';
+}
+
+function showResult() {
+  const key = getResult();
+  const p = PERSONALITIES[key];
+
+  document.getElementById('r-eyebrow').textContent = p.eyebrow;
+  document.getElementById('r-eyebrow').style.color = p.label;
+  document.getElementById('r-name').textContent = p.name;
+  document.getElementById('r-tagline').textContent = p.tagline;
+  document.getElementById('r-desc').textContent = p.desc;
+  document.getElementById('r-insight').textContent = p.insight;
+  document.getElementById('r-awareness').textContent = p.awareness;
+  document.getElementById('r-practical').textContent = p.practical;
+
+  const card = document.getElementById('result-card');
+  card.style.background = p.bg;
+  card.style.borderColor = p.border;
+
+  showScreen('result');
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const wrap = document.getElementById('confetti');
+  wrap.innerHTML = '';
+  const colors = ['#E8A020','#4CAF50','#2B6CB0','#C01A1A','#6B21A8','#E8B800'];
+  for (let i = 0; i < 55; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.width = (6 + Math.random() * 8) + 'px';
+    el.style.height = (6 + Math.random() * 8) + 'px';
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    el.style.animationDuration = (1.8 + Math.random() * 2) + 's';
+    el.style.animationDelay = (Math.random() * 0.8) + 's';
+    wrap.appendChild(el);
+  }
+  setTimeout(() => { wrap.innerHTML = ''; }, 4000);
+}
+
+function retakeQuiz() {
+  currentQ = 0;
+  answers = new Array(10).fill(null);
+  showScreen('landing');
+}
+
+function shareResult() {
+  const key = getResult();
+  const p = PERSONALITIES[key];
+  const text = `My brain color is ${key} — ${p.name}! ${p.tagline}`;
+  if (navigator.share) {
+    navigator.share({ title:'Brain Personality Snapshot', text, url:window.location.href }).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(text).then(()=>alert('Copied!')).catch(()=>alert(text));
+  }
+}
+</script>
+</body>
+</html>
