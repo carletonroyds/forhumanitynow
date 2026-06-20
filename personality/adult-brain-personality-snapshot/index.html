@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brain Personality Snapshot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #FFFFFF;
+  --bg2: #F6EFE1;
+  --border: rgba(31,41,55,0.08);
+  --border-mid: rgba(31,41,55,0.15);
+  --text: #1F2937;
+  --text-muted: #9CA3AF;
+  --text-mid: #6B7280;
+  --accent: #C8922A;
+  --accent-dim: rgba(200,146,42,0.1);
+  --accent-border: rgba(200,146,42,0.4);
+  --radius-card: 28px;
+
+  --blue-bg: #2B6CB0;
+  --blue-border: #1A4A80;
+  --blue-text: #EEF5FF;
+  --blue-label: #BED8F5;
+  --blue-muted: rgba(238,245,255,0.75);
+
+  --purple-bg: #6B21A8;
+  --purple-border: #4A1275;
+  --purple-text: #F5EEFF;
+  --purple-label: #DDB8F5;
+  --purple-muted: rgba(245,238,255,0.75);
+
+  --yellow-bg: #E8B800;
+  --yellow-border: #C49A00;
+  --yellow-text: #FFFBE0;
+  --yellow-label: #FFF0A0;
+  --yellow-muted: rgba(255,251,224,0.8);
+
+  --red-bg: #C01A1A;
+  --red-border: #8C0C0C;
+  --red-text: #FFEDED;
+  --red-label: #FFB8B8;
+  --red-muted: rgba(255,237,237,0.75);
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.screen { display: none; width: 100%; max-width: 640px; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+/* ── LANDING ── */
+.brand-mark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 48px;
+}
+
+.brand-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+.brand-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+.landing-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 18px;
+}
+
+.landing-title {
+  font-size: clamp(34px, 6.5vw, 54px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.landing-title em {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--text-mid);
+}
+
+.landing-sub {
+  font-size: clamp(14px, 2.5vw, 15px);
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.75;
+  margin-bottom: 40px;
+  max-width: 400px;
+}
+
+.color-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 44px;
+}
+
+.color-preview-tile {
+  border-radius: 16px;
+  padding: 16px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid transparent;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.color-preview-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(31,41,55,0.08);
+}
+
+.tile-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.tile-name {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* ── BUTTONS ── */
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  padding: 15px 36px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 12px rgba(200,146,42,0.28), 0 1px 3px rgba(31,41,55,0.1);
+}
+.btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-primary:active { transform: scale(0.97); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-mid);
+  border: 1.5px solid var(--border-mid);
+  border-radius: 100px;
+  padding: 13px 28px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-ghost:hover { background: var(--bg2); color: var(--text); border-color: rgba(31,41,55,0.25); box-shadow: 0 2px 8px rgba(31,41,55,0.08); }
+.btn-ghost:disabled { opacity: 0.25; cursor: not-allowed; }
+
+/* ── QUIZ ── */
+.quiz-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.q-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.q-instinct {
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-muted);
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 2px;
+  background: rgba(31,41,55,0.08);
+  border-radius: 2px;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+.question-card {
+  background: var(--bg2);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  padding: clamp(24px, 5vw, 44px);
+  width: 100%;
+  transition: transform 0.24s cubic-bezier(0.4,0,0.2,1), opacity 0.24s ease;
+  box-shadow: none;
+}
+
+.question-card.slide-out { transform: translateX(-44px); opacity: 0; }
+.question-card.slide-in { transform: translateX(44px); opacity: 0; }
+.question-card.slide-back-out { transform: translateX(44px); opacity: 0; }
+.question-card.slide-back-in { transform: translateX(-44px); opacity: 0; }
+.question-card.visible { transform: translateX(0); opacity: 1; }
+
+.q-dimension {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.q-text {
+  font-size: clamp(19px, 3.8vw, 25px);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin-bottom: 36px;
+}
+
+.poles-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pole-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.pole-label.right { text-align: right; }
+.pole-center { font-size: 9px; color: rgba(31,41,55,0.2); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; text-align: center; white-space: nowrap; }
+
+.choices-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.choice-btn {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 8px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-mid);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.16s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(31,41,55,0.06);
+}
+
+.choice-btn:hover:not(.selected):not(.confirmed) {
+  border-color: var(--accent-border);
+  background: var(--accent-dim);
+  color: var(--text);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(31,41,55,0.07);
+}
+
+.choice-btn.selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+.choice-btn.confirmed {
+  border-color: #4CAF50;
+  background: #F0FBF0;
+  color: #2E7D32;
+}
+
+.choice-word {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.choice-desc {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+.choice-btn.selected .choice-desc { color: var(--text-mid); }
+.choice-btn.confirmed .choice-desc { color: #4CAF50; }
+.choice-check { font-size: 18px; line-height: 1; }
+
+.quiz-footer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  gap: 12px;
+}
+
+/* ── RESULT ── */
+.result-card {
+  border-radius: var(--radius-card);
+  padding: clamp(28px, 5vw, 48px);
+  width: 100%;
+  border: 1.5px solid transparent;
+  box-shadow: 0 4px 32px rgba(31,41,55,0.08);
+  animation: resultReveal 0.5s cubic-bezier(0.34,1.4,0.64,1) forwards;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes resultReveal {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.result-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.result-name {
+  font-size: clamp(30px, 6.5vw, 48px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  margin-bottom: 8px;
+}
+
+.result-tagline {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: clamp(15px, 2.8vw, 19px);
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+
+.result-desc {
+  font-size: clamp(13px, 2.5vw, 15px);
+  line-height: 1.8;
+  margin-bottom: 28px;
+  max-width: 500px;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 480px) {
+  .insight-grid { grid-template-columns: 1fr; }
+  .color-preview-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.insight-box {
+  background: rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+.insight-box-full {
+  background: rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 18px 22px;
+  border: 1px solid rgba(255,255,255,0.25);
+  margin-bottom: 28px;
+}
+
+.insight-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+.insight-value {
+  font-size: clamp(13px, 2.4vw, 14px);
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.insight-value.italic {
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(13px, 2.4vw, 14px);
+  line-height: 1.7;
+  opacity: 0.85;
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+  body { padding: 16px; justify-content: flex-start; padding-top: 36px; }
+  .screen { max-width: 100%; }
+}
+
+@media (min-width: 900px) {
+  .screen { max-width: 640px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<div class="screen active" id="screen-landing">
+  <h1 class="landing-eyebrow" style="font-size:clamp(20px,3.5vw,28px); letter-spacing:0.02em; font-weight:800; color:var(--text); margin-bottom:22px;">Brain Personality Snapshot</h1>
+  <p class="landing-title" style="font-size:clamp(26px,5vw,40px); margin-bottom:12px;">10 questions.<br><em style="font-family:'Playfair Display',serif; font-style:italic; font-weight:400; color:var(--text-mid);">Your color reveals itself.</em></p>
+  <p class="landing-sub">Find the color that drives how you<br>think, decide, and act.<br>Based on neuroscience-informed models of behavior.</p>
+
+  <div class="color-preview-grid">
+    <div class="color-preview-tile" style="background:#2B6CB0; border-color:#1A4A80;">
+      <span class="tile-label" style="color:#BED8F5;">Blue</span>
+      <span class="tile-name" style="color:#EEF5FF;">The Logician</span>
+    </div>
+    <div class="color-preview-tile" style="background:#6B21A8; border-color:#4A1275;">
+      <span class="tile-label" style="color:#DDB8F5;">Purple</span>
+      <span class="tile-name" style="color:#F5EEFF;">The People Person</span>
+    </div>
+    <div class="color-preview-tile" style="background:#E8B800; border-color:#C49A00;">
+      <span class="tile-label" style="color:#FFF0A0;">Yellow</span>
+      <span class="tile-name" style="color:#FFFBE0;">The Explorer</span>
+    </div>
+    <div class="color-preview-tile" style="background:#C01A1A; border-color:#8C0C0C;">
+      <span class="tile-label" style="color:#FFB8B8;">Red</span>
+      <span class="tile-name" style="color:#FFEDED;">The Initiator</span>
+    </div>
+  </div>
+
+  <button class="btn-primary" style="background:#1F2937; box-shadow:0 2px 12px rgba(31,41,55,0.22);" onclick="startQuiz()">Start Your Snapshot →</button>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="screen-quiz">
+  <div class="quiz-header">
+    <span class="q-label" id="q-counter">Question 1 of 10</span>
+    <span class="q-instinct">Go with your first instinct</span>
+  </div>
+
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progress-fill" style="width:10%"></div>
+  </div>
+
+  <div style="width:100%; overflow:hidden;">
+    <div class="question-card visible" id="question-card">
+      <div class="q-dimension" id="q-dimension"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="poles-row">
+        <div class="pole-label left" id="pole-left"></div>
+        <div class="pole-center">or</div>
+        <div class="pole-label right" id="pole-right"></div>
+      </div>
+      <div class="choices-row" id="q-choices"></div>
+    </div>
+  </div>
+
+  <div class="quiz-footer">
+    <button class="btn-ghost" id="btn-back" onclick="goBack()" disabled>← Back</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="screen-result">
+  <div class="result-card" id="result-card">
+    <div class="result-eyebrow" id="r-eyebrow"></div>
+    <div class="result-name" id="r-name"></div>
+    <div class="result-tagline" id="r-tagline"></div>
+    <div class="result-desc" id="r-desc"></div>
+
+    <div class="insight-grid">
+      <div class="insight-box">
+        <div class="insight-label" id="r-insight-label">Brain insight</div>
+        <div class="insight-value" id="r-insight"></div>
+      </div>
+      <div class="insight-box">
+        <div class="insight-label" id="r-awareness-label">Watch for</div>
+        <div class="insight-value" id="r-awareness"></div>
+      </div>
+    </div>
+
+    <div style="height:10px;"></div>
+
+    <div class="insight-box-full">
+      <div class="insight-label" id="r-practical-label">Practical takeaway</div>
+      <div class="insight-value italic" id="r-practical"></div>
+    </div>
+
+    <div class="result-actions">
+      <button onclick="retakeQuiz()" style="background:rgba(255,255,255,0.2); color:#fff; border:1.5px solid rgba(255,255,255,0.35); border-radius:100px; padding:13px 28px; font-family:'Inter',sans-serif; font-size:14px; font-weight:700; cursor:pointer; transition:all 0.15s ease; display:inline-flex; align-items:center; gap:6px;">↺ Retake</button>
+      <button onclick="shareResult()" style="background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); border:1.5px solid rgba(255,255,255,0.2); border-radius:100px; padding:13px 28px; font-family:'Inter',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.15s ease; display:inline-flex; align-items:center; gap:6px;">Share my color</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { dimension:"Energy", text:"How do you typically recharge?", left:"Introvert", leftDesc:"time alone", right:"Extravert", rightDesc:"with others" },
+  { dimension:"Processing", text:"How do you process information?", left:"Rational", leftDesc:"facts first", right:"Intuitive", rightDesc:"gut feeling" },
+  { dimension:"Focus", text:"What is your natural focus?", left:"Detail-oriented", leftDesc:"step by step", right:"Big picture", rightDesc:"the whole view" },
+  { dimension:"Attention", text:"How do you manage your attention?", left:"Conscientious", leftDesc:"stays on task", right:"Distractible", rightDesc:"follows curiosity" },
+  { dimension:"Risk", text:"What is your attitude toward uncertainty?", left:"Risk averse", leftDesc:"play it safe", right:"Risk taker", rightDesc:"embrace it" },
+  { dimension:"Execution", text:"How do you handle tasks?", left:"Starter", leftDesc:"loves launching", right:"Finisher", rightDesc:"loves completing" },
+  { dimension:"Mindset", text:"How do you view your own abilities?", left:"Flexible mindset", leftDesc:"I can grow", right:"Fixed mindset", rightDesc:"I'm wired this way" },
+  { dimension:"Social drive", text:"What drives your social interactions?", left:"Empathy", leftDesc:"others first", right:"Control", rightDesc:"outcomes first" },
+  { dimension:"Outlook", text:"What is your general outlook?", left:"Pessimist", leftDesc:"expect problems", right:"Optimist", rightDesc:"expect success" },
+  { dimension:"Work style", text:"How do you prefer to work?", left:"Creative", leftDesc:"open-ended", right:"Ordered", rightDesc:"structured" }
+];
+
+const PERSONALITIES = {
+  Blue: {
+    eyebrow:"Your brain color is Blue",
+    name:"The Logician",
+    tagline:"Structured, accurate, and built for follow-through.",
+    desc:"You lead with logic and precision. When you commit to something, it gets done right. People trust you to hold the standard and keep things on track.",
+    insight:"Logical control — you process through systems and sequences.",
+    awareness:"May over-focus on safety or details, stalling momentum.",
+    practical:"Balance your precision with pace. Not every decision needs a perfect plan before moving.",
+    bg:"var(--blue-bg)", border:"var(--blue-border)", text:"var(--blue-text)",
+    label:"var(--blue-label)", muted:"var(--blue-muted)"
+  },
+  Purple: {
+    eyebrow:"Your brain color is Purple",
+    name:"The People Person",
+    tagline:"Balanced, adaptable, and connecting ideas to people.",
+    desc:"You see multiple sides of every situation and know how to move between them. You're the person who makes collaboration work — synthesizing, bridging, aligning.",
+    insight:"Flexible switching — your brain moves fluidly between modes.",
+    awareness:"May hesitate when options feel too equal.",
+    practical:"Trust your synthesis instinct. When data is inconclusive, your read on people often isn't.",
+    bg:"var(--purple-bg)", border:"var(--purple-border)", text:"var(--purple-text)",
+    label:"var(--purple-label)", muted:"var(--purple-muted)"
+  },
+  Yellow: {
+    eyebrow:"Your brain color is Yellow",
+    name:"The Explorer",
+    tagline:"Curious, imaginative, and driven by possibility.",
+    desc:"Your mind is always generating. You see connections others miss and get energized by what could be. You bring the spark that starts things.",
+    insight:"Associative creativity — your brain links ideas across domains.",
+    awareness:"May start more than you finish.",
+    practical:"Partner with finishers. Your ideas need builders — find them and your impact multiplies.",
+    bg:"var(--yellow-bg)", border:"var(--yellow-border)", text:"var(--yellow-text)",
+    label:"var(--yellow-label)", muted:"var(--yellow-muted)"
+  },
+  Red: {
+    eyebrow:"Your brain color is Red",
+    name:"The Initiator",
+    tagline:"Fast-moving, decisive, and built for momentum.",
+    desc:"You don't wait for permission to act. You turn energy into motion and motion into results. When things need to move, you move them.",
+    insight:"Action/reward drive — your brain is wired for decisive execution.",
+    awareness:"May overlook details or skip gathering input.",
+    practical:"Slow down to gather input before acting. Small details now prevent large setbacks later.",
+    bg:"var(--red-bg)", border:"var(--red-border)", text:"var(--red-text)",
+    label:"var(--red-label)", muted:"var(--red-muted)"
+  }
+};
+
+let currentQ = 0;
+let answers = new Array(10).fill(null);
+let isAnimating = false;
+
+function startQuiz() {
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  document.getElementById('q-counter').textContent = `Question ${currentQ + 1} of ${QUESTIONS.length}`;
+  document.getElementById('q-dimension').textContent = q.dimension;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('pole-left').textContent = q.left;
+  document.getElementById('pole-right').textContent = q.right;
+  document.getElementById('progress-fill').style.width = `${((currentQ + 1) / QUESTIONS.length) * 100}%`;
+  document.getElementById('btn-back').disabled = currentQ === 0;
+
+  const choices = document.getElementById('q-choices');
+  choices.innerHTML = '';
+
+  const defs = [
+    { value:1, word:q.left, desc:q.leftDesc },
+    { value:2, word:'A bit of both', desc:'' },
+    { value:3, word:q.right, desc:q.rightDesc }
+  ];
+
+  defs.forEach(d => {
+    const btn = document.createElement('button');
+    const isSelected = answers[currentQ] === d.value;
+    btn.className = 'choice-btn' + (isSelected ? ' selected' : '');
+    btn.innerHTML = `<span class="choice-word">${d.word}</span>${d.desc ? `<span class="choice-desc">${d.desc}</span>` : ''}`;
+    btn.onclick = () => selectAnswer(d.value, btn);
+    choices.appendChild(btn);
+  });
+
+  updateNextBtn();
+}
+
+function updateNextBtn() {}
+
+function selectAnswer(value, btnEl) {
+  if (isAnimating) return;
+  answers[currentQ] = value;
+
+  document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected','confirmed'));
+  btnEl.classList.add('confirmed');
+  btnEl.innerHTML = `<span class="choice-check">✓</span>`;
+
+  updateNextBtn();
+
+  setTimeout(() => {
+    if (currentQ < QUESTIONS.length - 1) {
+      animateNext(false);
+    } else {
+      showResult();
+    }
+  }, 300);
+}
+
+function goNext() {
+  if (answers[currentQ] === null || isAnimating) return;
+  if (currentQ < QUESTIONS.length - 1) animateNext(false);
+  else showResult();
+}
+
+function animateNext(isBack) {
+  if (isAnimating) return;
+  isAnimating = true;
+  const card = document.getElementById('question-card');
+  card.classList.remove('visible','slide-out','slide-in','slide-back-out','slide-back-in');
+  card.classList.add(isBack ? 'slide-back-out' : 'slide-out');
+
+  setTimeout(() => {
+    if (isBack) currentQ--; else currentQ++;
+    card.classList.remove('slide-out','slide-back-out');
+    card.classList.add(isBack ? 'slide-back-in' : 'slide-in');
+    renderQuestion();
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      card.classList.remove('slide-in','slide-back-in');
+      card.classList.add('visible');
+      isAnimating = false;
+    }));
+  }, 200);
+}
+
+function goBack() {
+  if (currentQ === 0 || isAnimating) return;
+  animateNext(true);
+}
+
+function getResult() {
+  const total = answers.reduce((s,v) => s + (v||0), 0);
+  if (total <= 12) return 'Blue';
+  if (total <= 18) return 'Purple';
+  if (total <= 24) return 'Yellow';
+  return 'Red';
+}
+
+function showResult() {
+  const key = getResult();
+  const p = PERSONALITIES[key];
+
+  document.getElementById('r-eyebrow').textContent = p.eyebrow;
+  document.getElementById('r-eyebrow').style.color = p.label;
+  document.getElementById('r-name').textContent = p.name;
+  document.getElementById('r-name').style.color = p.text;
+  document.getElementById('r-tagline').textContent = p.tagline;
+  document.getElementById('r-tagline').style.color = p.muted;
+  document.getElementById('r-desc').textContent = p.desc;
+  document.getElementById('r-desc').style.color = p.muted;
+  document.getElementById('r-insight').textContent = p.insight;
+  document.getElementById('r-insight').style.color = p.text;
+  document.getElementById('r-awareness').textContent = p.awareness;
+  document.getElementById('r-awareness').style.color = p.text;
+  document.getElementById('r-practical').textContent = p.practical;
+  document.getElementById('r-practical').style.color = p.muted;
+
+  ['r-insight-label','r-awareness-label','r-practical-label'].forEach(id => {
+    document.getElementById(id).style.color = p.label;
+  });
+
+  const card = document.getElementById('result-card');
+  card.style.background = p.bg;
+  card.style.borderColor = p.border;
+
+  showScreen('result');
+}
+
+function retakeQuiz() {
+  currentQ = 0;
+  answers = new Array(10).fill(null);
+  showScreen('landing');
+}
+
+function shareResult() {
+  const key = getResult();
+  const p = PERSONALITIES[key];
+  const text = `My brain color is ${key} — ${p.name}. ${p.tagline}`;
+  if (navigator.share) {
+    navigator.share({ title:'Brain Personality Snapshot', text, url:window.location.href }).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(text).then(()=>alert('Copied!')).catch(()=>alert(text));
+  }
+}
+</script>
+</body>
+</html>
