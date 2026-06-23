@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Blast Quiz Show 🎬 | ForHumanityNow</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0D1B2A;--pink:#FF4D9E;--cyan:#00E5FF;--gold:#FFD166;
+  --green:#06D6A0;--red:#FF5A5F;--white:#F0F4FF;--card:#1A2E45;
+  --purple:#a78bfa;--orange:#FF6B35;
+  --glow-gold:0 0 24px rgba(255,209,102,0.6);
+  --glow-pink:0 0 20px rgba(255,77,158,0.5);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);font-family:'Nunito',sans-serif;color:var(--white);min-height:100vh;overflow-x:hidden;}
+
+/* Stage lights */
+.stage-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.light-beam{position:absolute;top:-20px;width:120px;height:60vh;opacity:0.04;border-radius:0 0 60px 60px;animation:lightSway 4s ease-in-out infinite alternate;}
+.light-beam:nth-child(1){left:5%;background:var(--gold);animation-delay:0s;}
+.light-beam:nth-child(2){left:25%;background:var(--cyan);animation-delay:0.8s;}
+.light-beam:nth-child(3){left:50%;background:var(--pink);animation-delay:1.4s;}
+.light-beam:nth-child(4){left:72%;background:var(--gold);animation-delay:0.4s;}
+.light-beam:nth-child(5){right:5%;background:var(--purple);animation-delay:1.0s;}
+@keyframes lightSway{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}
+.stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+.star{position:absolute;border-radius:50%;background:white;opacity:0.3;animation:twinkle 3s infinite alternate;}
+@keyframes twinkle{from{opacity:0.1}to{opacity:0.6}}
+
+.screen{display:none;min-height:100vh;position:relative;z-index:1;}
+.screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+
+/* INTRO */
+#intro{gap:14px;text-align:center;}
+.fhn-tag{font-size:12px;color:var(--cyan);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;opacity:0.7;}
+.logo-icon{font-size:64px;animation:bounce 1s ease-in-out infinite alternate;display:inline-block;}
+@keyframes bounce{from{transform:translateY(0) scale(1)}to{transform:translateY(-10px) scale(1.05)}}
+.game-title{font-family:'Fredoka One',cursive;font-size:clamp(32px,8vw,60px);background:linear-gradient(135deg,var(--gold),var(--pink),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;filter:drop-shadow(0 0 24px rgba(255,209,102,0.5));}
+.intro-desc{font-size:clamp(14px,3vw,17px);line-height:1.65;max-width:480px;color:rgba(240,244,255,0.85);font-weight:600;}
+
+/* CATEGORY PILLS */
+.cat-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.cat-pill{padding:8px 16px;border-radius:20px;border:2px solid;font-family:'Fredoka One',cursive;font-size:13px;display:flex;align-items:center;gap:5px;}
+.cat-pill.tf{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,0.08);}
+.cat-pill.rf{border-color:var(--gold);color:var(--gold);background:rgba(255,209,102,0.08);}
+.cat-pill.wd{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,0.08);}
+.btn-start{font-family:'Fredoka One',cursive;font-size:22px;padding:14px 48px;border-radius:50px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--gold),var(--pink));color:white;box-shadow:var(--glow-gold),0 8px 24px rgba(0,0,0,0.4);transition:transform 0.15s;}
+.btn-start:hover{transform:scale(1.07);}
+
+/* GAME */
+#game{gap:8px;padding:14px 14px;justify-content:flex-start;padding-top:16px;}
+
+/* SCORE BAR */
+.score-bar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;width:100%;max-width:520px;}
+.score-pill{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:7px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px;}
+.score-pill span{font-family:'Fredoka One';font-size:17px;}
+
+/* STREAK */
+.streak-row{display:flex;gap:5px;justify-content:center;align-items:center;font-size:12px;font-weight:700;color:rgba(240,244,255,0.45);text-transform:uppercase;letter-spacing:0.06em;}
+.streak-dot{width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);transition:all 0.3s cubic-bezier(.34,1.56,.64,1);}
+.streak-dot.lit{border-color:var(--gold);background:rgba(255,209,102,0.3);box-shadow:0 0 8px rgba(255,209,102,0.5);}
+
+/* HOST */
+.host-bubble{width:100%;max-width:520px;display:flex;align-items:flex-start;gap:12px;}
+.host-avatar{width:52px;height:52px;border-radius:50%;border:3px solid var(--gold);background:linear-gradient(135deg,#1A2E45,#0D1B2A);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:var(--glow-gold);animation:hostPop 0.4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes hostPop{0%{transform:scale(0.7)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+.host-speech{background:linear-gradient(135deg,rgba(26,46,69,0.95),rgba(13,27,42,0.95));border-radius:0 18px 18px 18px;padding:12px 16px;border:1px solid rgba(255,209,102,0.2);font-size:14px;font-weight:700;color:rgba(240,244,255,0.9);line-height:1.5;position:relative;flex:1;}
+.host-speech::before{content:'';position:absolute;left:-8px;top:12px;border:8px solid transparent;border-right-color:rgba(26,46,69,0.95);border-left:0;}
+
+/* CATEGORY TAG */
+.cat-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:12px;border:1.5px solid;font-family:'Fredoka One',cursive;font-size:12px;margin-bottom:8px;}
+.cat-tag.tf{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,0.08);}
+.cat-tag.rf{border-color:var(--gold);color:var(--gold);background:rgba(255,209,102,0.08);}
+.cat-tag.wd{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,0.08);}
+
+/* QUESTION CARD */
+.q-card{width:100%;max-width:520px;background:linear-gradient(135deg,rgba(26,46,69,0.97),rgba(13,27,42,0.97));border-radius:20px;border:2px solid rgba(255,255,255,0.1);padding:16px 18px;animation:cardIn 0.35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes cardIn{from{transform:scale(0.92) translateY(16px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.q-num{font-size:11px;font-weight:700;color:rgba(240,244,255,0.35);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+.q-text{font-size:clamp(14px,3vw,16px);font-weight:800;line-height:1.55;color:var(--white);margin-bottom:14px;}
+
+/* ANSWER BUTTONS */
+.answers{display:flex;flex-direction:column;gap:8px;}
+.ans-btn{padding:12px 16px;border-radius:14px;border:2px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);cursor:pointer;font-size:14px;font-weight:700;color:rgba(240,244,255,0.9);text-align:left;transition:transform 0.12s,border-color 0.15s,background 0.15s;line-height:1.4;display:flex;align-items:center;gap:10px;}
+.ans-btn:hover{transform:translateX(4px);border-color:var(--cyan);background:rgba(0,229,255,0.07);}
+.ans-btn:active{transform:translateX(2px);}
+.ans-btn:disabled{pointer-events:none;}
+.ans-letter{font-family:'Fredoka One',cursive;font-size:15px;width:24px;flex-shrink:0;text-align:center;opacity:0.6;}
+.ans-btn.correct{border-color:var(--green);background:rgba(6,214,160,0.15);color:var(--green);}
+.ans-btn.correct .ans-letter{opacity:1;color:var(--green);}
+.ans-btn.wrong{border-color:var(--red);background:rgba(255,90,95,0.1);color:rgba(240,244,255,0.4);}
+
+/* CROWD */
+.crowd-row{font-size:22px;text-align:center;line-height:1;animation:crowdAnim 0.5s ease-out;letter-spacing:2px;}
+@keyframes crowdAnim{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* PROGRESS */
+.progress-wrap{width:100%;max-width:520px;}
+.progress-bar{height:6px;border-radius:3px;background:rgba(255,255,255,0.08);overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--cyan),var(--pink));transition:width 0.5s ease;}
+
+/* RESULTS */
+#results{gap:18px;text-align:center;padding:24px 20px;}
+.res-title{font-family:'Fredoka One',cursive;font-size:clamp(32px,7vw,52px);background:linear-gradient(135deg,var(--gold),var(--pink),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
+.trophy-wrap{position:relative;width:140px;height:140px;margin:0 auto;}
+.trophy-ring{position:absolute;inset:0;border-radius:50%;border:4px solid var(--gold);box-shadow:var(--glow-gold);animation:spinSlow 8s linear infinite;}
+@keyframes spinSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.trophy-inner{position:absolute;inset:10px;border-radius:50%;background:linear-gradient(135deg,#1A2E45,#0D1B2A);display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid rgba(255,209,102,0.3);}
+.trophy-emoji{font-size:42px;}
+.trophy-txt{font-family:'Fredoka One',cursive;font-size:11px;color:var(--gold);margin-top:2px;}
+.stat-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.stat-box{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px 18px;min-width:82px;}
+.stat-n{font-family:'Fredoka One',cursive;font-size:28px;}
+.stat-l{font-size:11px;color:rgba(240,244,255,0.5);font-weight:700;text-transform:uppercase;}
+.brain-box{max-width:440px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:16px;padding:16px 20px;font-size:14px;line-height:1.6;font-weight:600;color:rgba(240,244,255,0.88);}
+.brain-box strong{color:var(--cyan);}
+.btn-again{font-family:'Fredoka One',cursive;font-size:21px;padding:14px 40px;border-radius:50px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--gold),var(--pink));color:white;box-shadow:var(--glow-gold),0 8px 20px rgba(0,0,0,0.3);transition:transform 0.15s;}
+.btn-again:hover{transform:scale(1.06);}
+.confetti-piece{position:fixed;pointer-events:none;z-index:999;animation:cfFall linear forwards;}
+@keyframes cfFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+.btn-next-q{font-family:'Fredoka One',cursive;font-size:15px;padding:10px 26px;border-radius:28px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--cyan),#0891b2);color:var(--navy);margin-top:10px;transition:transform 0.15s;display:inline-block;}
+.btn-next-q:hover{transform:scale(1.05);}
+.host-feedback{margin-top:10px;font-size:13px;font-weight:700;color:rgba(240,244,255,0.7);font-style:italic;line-height:1.5;}
+.host-feedback.correct{color:var(--green);}
+.host-feedback.wrong{color:rgba(240,244,255,0.6);}
+</style>
+</head>
+<body>
+<div class="stage-bg">
+  <div class="light-beam"></div><div class="light-beam"></div><div class="light-beam"></div>
+  <div class="light-beam"></div><div class="light-beam"></div>
+</div>
+<div class="stars" id="stars"></div>
+
+<!-- INTRO -->
+<div class="screen active" id="intro">
+  <div class="fhn-tag">ForHumanityNow</div>
+  <div class="logo-icon">🎬</div>
+  <h1 class="game-title">Brain Blast<br>Quiz Show!</h1>
+  <div class="cat-pills">
+    <div class="cat-pill tf">🧊🔥 Think or Feel?</div>
+    <div class="cat-pill rf">✅❌ Real or Fake?</div>
+    <div class="cat-pill wd">💡 What Would YOU Do?</div>
+  </div>
+  <p class="intro-desc">Three types of brain challenges, a live audience cheering you on, and a streaking score that rewards smart thinking! 15 questions — how high can you score?</p>
+  <button class="btn-start" onclick="startGame()">TAKE THE STAGE! 🎤</button>
+  <p style="font-size:12px;color:rgba(240,244,255,0.3);margin-top:8px;">15 questions • No API • Zero cost</p>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="game">
+  <div class="score-bar">
+    <div class="score-pill">⭐ Score: <span id="scoreDisp">0</span></div>
+    <div class="score-pill">🔥 Streak: <span id="streakDisp">0</span></div>
+    <div class="score-pill">✅ Correct: <span id="correctDisp">0</span>/15</div>
+  </div>
+  <div class="streak-row">
+    <span>Streak:</span>
+    <div class="streak-dot" id="sd0"></div>
+    <div class="streak-dot" id="sd1"></div>
+    <div class="streak-dot" id="sd2"></div>
+    <div class="streak-dot" id="sd3"></div>
+    <div class="streak-dot" id="sd4"></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+  <div class="host-bubble" id="hostBubble">
+    <div class="host-avatar" id="hostAvatar">🎤</div>
+    <div class="host-speech" id="hostSpeech">Welcome to Brain Blast! Let's see how sharp your brain is today!</div>
+  </div>
+  <div class="q-card" id="qCard">
+    <!-- injected by JS -->
+  </div>
+  <div class="crowd-row" id="crowdRow"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="results">
+  <div class="res-title" id="resTitle">Brain Superstar!</div>
+  <div style="font-size:28px">🎬🧠⭐</div>
+  <div class="trophy-wrap">
+    <div class="trophy-ring"></div>
+    <div class="trophy-inner">
+      <div class="trophy-emoji" id="resEmoji">🏆</div>
+      <div class="trophy-txt" id="resBadge">CHAMPION</div>
+    </div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-n" style="color:var(--gold)" id="resScore">0</div><div class="stat-l">Score</div></div>
+    <div class="stat-box"><div class="stat-n" style="color:var(--green)" id="resCorrect">0</div><div class="stat-l">Correct</div></div>
+    <div class="stat-box"><div class="stat-n" style="color:var(--pink)" id="resBest">0</div><div class="stat-l">Best Streak</div></div>
+  </div>
+  <div class="brain-box" id="resFact"></div>
+  <button class="btn-again" onclick="restartGame()">Play Again! 🔁</button>
+  <p style="font-size:12px;color:rgba(240,244,255,0.35);margin-top:6px;">ForHumanityNow.org</p>
+</div>
+
+<script>
+// =====================================================================
+// QUESTION POOL — 45 questions (15 per category), deal 5 of each per game
+// Categories: tf = Think or Feel?, rf = Real or Fake?, wd = What Would You Do?
+// =====================================================================
+
+const TF_QUESTIONS = [
+  {q:'You just lost a game and you threw the controller across the room without thinking.',answer:1,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Throwing things in frustration is a pure Feeling Brain reaction — it happened before the Thinking Brain could say "wait!"'},
+  {q:'Before posting a comment, you re-read it three times to make sure it doesn\'t sound mean.',answer:0,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Re-reading before posting = Thinking Brain at work! It pauses, checks, and considers how others will receive it.'},
+  {q:'You saw a scary post and immediately sent it to everyone in your contacts without reading it fully.',answer:1,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Fear hijacked the Feeling Brain so fast the Thinking Brain never even got to read the post!'},
+  {q:'You felt really angry at your sister but decided to walk away and cool down before talking to her.',answer:0,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Choosing to walk away and cool down is a classic Thinking Brain move — it knew the conversation needed a calmer moment.'},
+  {q:'You started crying because you saw a sad commercial about puppies.',answer:1,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Emotional responses like crying to a commercial are pure Feeling Brain — instant, automatic, and deeply human!'},
+  {q:'You asked "Why?" before believing something a friend told you.',answer:0,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Asking "why" or "how do you know?" before believing something is classic Thinking Brain critical thinking!'},
+  {q:'You felt embarrassed and your face went red without you choosing to blush.',answer:1,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Blushing is an automatic Feeling Brain body response — you can\'t choose NOT to blush any more than you can choose not to feel embarrassed!'},
+  {q:'You made a pros and cons list before deciding which video game to spend your birthday money on.',answer:0,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Making a pros and cons list is pure Thinking Brain — gathering information and comparing options before deciding.'},
+  {q:'You heard a loud bang and jumped out of your chair before you even knew what it was.',answer:1,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Jumping at sudden sounds is one of the Feeling Brain\'s most ancient jobs — it reacts to danger FAST, before the Thinking Brain can even process what happened.'},
+  {q:'Before accepting a dare, you thought through what could actually go wrong.',answer:0,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Thinking through consequences before acting is the Thinking Brain in full detective mode!'},
+  {q:'You got jealous when your friend got a new bike and said something mean without meaning to.',answer:1,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Jealousy is a Feeling Brain emotion that can hijack our words before the Thinking Brain edits them!'},
+  {q:'You noticed you were getting frustrated during homework and took a 5-minute break on purpose.',answer:0,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Noticing your own emotional state and deciding to take a break is the Thinking Brain managing the Feeling Brain — a superpower!'},
+  {q:'You heard your name mentioned across the room and immediately turned to listen even though you were busy.',answer:1,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Your brain automatically tunes to your own name — this is called the "cocktail party effect" and it\'s a Feeling Brain survival instinct!'},
+  {q:'You checked whether a news story was from a real website before sharing it.',answer:0,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Checking sources before sharing is one of the most powerful Thinking Brain habits in the digital age!'},
+  {q:'You got so excited opening birthday presents that you forgot to say thank you until your mom reminded you.',answer:1,choices:['Thinking Brain 🧊','Feeling Brain 🔥'],explain:'Pure excitement from the Feeling Brain temporarily overrides the Thinking Brain\'s social awareness. Very normal — which is why we have reminders!'},
+];
+
+const RF_QUESTIONS = [
+  {q:'💬 "Sharing a social media post can plant a real tree. One share = one tree planted!"',answer:1,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'Trees are not planted per share. Real tree-planting charities take donations of real money, not clicks. Shares just spread the post — nothing more!'},
+  {q:'💬 "Your brain uses about 20% of your body\'s total energy, even though it\'s only 2% of your body weight."',answer:0,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'True! The brain is incredibly energy-hungry. Even at rest, it burns through an enormous amount of glucose and oxygen to keep everything running.'},
+  {q:'💬 "If you forward a chain message to 10 friends within 10 minutes, something bad will happen to you if you don\'t."',answer:1,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'Chain messages are always fake. Nothing bad has ever happened to anyone from deleting one. They exist solely to make people feel scared enough to share!'},
+  {q:'💬 "The human brain has about 86 billion neurons — roughly the same number as stars in the Milky Way galaxy."',answer:0,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'True! 86 billion neurons, each connected to thousands of others. Your brain is literally the most complex object we know of in the entire universe!'},
+  {q:'💬 "Scientists proved that kids who use phones for more than 1 hour grow a second brain in their skull."',answer:1,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'Completely made up! No second brain grows — ever. When a "science fact" sounds this bizarre, your Thinking Brain asks: "Where is the actual study?"'},
+  {q:'💬 "Your brain is actually more active when you\'re sleeping than when you\'re watching TV."',answer:0,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'True! During sleep, your brain is incredibly busy — consolidating memories, flushing out waste products, and processing emotions. TV is actually quite low-stimulation by comparison.'},
+  {q:'💬 "A company will donate $1 to charity for every like this post gets."',answer:1,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'Social media likes don\'t trigger real donations. This is one of the oldest viral tricks. Real charity campaigns have official websites and donation links, not like counts.'},
+  {q:'💬 "Emotions are contagious — just being near someone who is happy can actually improve your own mood."',answer:0,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'True! Scientists call this "emotional contagion." Our brains have mirror neurons that pick up on other people\'s feelings. Moods really do spread!'},
+  {q:'💬 "Eating carrots will help you see in complete darkness like a cat."',answer:1,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'This is a myth — originally started as wartime propaganda! Carrots contain Vitamin A which supports healthy vision, but they won\'t give you night vision powers.'},
+  {q:'💬 "You only use 10% of your brain — the other 90% is unused potential."',answer:1,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'This is one of the most widespread brain myths ever! Brain scans show we use virtually all of our brain, just different parts for different things. No part sits unused!'},
+  {q:'💬 "Taking slow deep breaths actually changes your brain chemistry and helps calm anxiety."',answer:0,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'True! Deep breathing triggers the parasympathetic nervous system, which literally signals your brain to switch off the stress response. It\'s one of the most powerful tools you have!'},
+  {q:'💬 "Scientists have a machine that can read your exact thoughts word-for-word."',answer:1,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'No such machine exists. Brain scanners can detect patterns of activity, but reading specific thoughts word-for-word is still science fiction.'},
+  {q:'💬 "Your gut has its own nervous system with 100 million neurons — sometimes called your second brain."',answer:0,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'True! The enteric nervous system in your gut is remarkably complex. This is why stress can cause stomachaches — your gut and brain are constantly communicating!'},
+  {q:'💬 "Drinking a special smoothie recipe can increase your IQ by 50 points in one week."',answer:1,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'No smoothie can do this. IQ isn\'t a fixed number and can\'t be raised 50 points by any drink. When health claims sound too dramatic, the Thinking Brain asks for the actual study!'},
+  {q:'💬 "Laughing is actually good for your health — it releases chemicals that reduce pain and stress."',answer:0,choices:['✅ Real — this actually happens','❌ Fake — this is a trick'],explain:'True! Laughter releases endorphins (the brain\'s feel-good chemicals), reduces cortisol (the stress hormone), and can even temporarily reduce pain sensitivity. Laugh more!'},
+];
+
+const WD_QUESTIONS = [
+  {q:'Your friend tells you a rumor about another classmate and asks you to help spread it. What\'s the Thinking Brain move?',answer:1,choices:['Share it with just a couple people — small circles are okay.','Ask your friend if they actually know it\'s true before passing it on.','Post it online so more people can weigh in on whether it\'s true.'],explain:'Asking "is this actually true?" before passing on information is critical thinking in action. Rumors rarely are — and spreading them can seriously hurt real people.'},
+  {q:'You see an ad that says "This ONE trick makes you smarter overnight — doctors HATE it!" What do you do?',answer:1,choices:['Try it — if it really works you\'ll be smarter than everyone.','Recognize this as a classic misleading headline and ignore it.','Ask your friends if they\'ve heard of it before deciding.'],explain:'"Doctors HATE it" is a huge red flag for misleading health claims. Real medical breakthroughs are shared WITH doctors, not hidden from them. The Thinking Brain spots this immediately.'},
+  {q:'You\'re playing a game online and someone asks you to share your school\'s name to join a "local kids club." What\'s the smart move?',answer:2,choices:['Share it — it\'s just a school name, not personal info.','Ask what the club does first, then decide.','Don\'t share any personal information and tell a trusted adult.'],explain:'Even your school name can help strangers figure out where you are. The Thinking Brain knows: NEVER share any identifying information online without a trusted adult\'s knowledge.'},
+  {q:'You made a mistake and got the wrong answer in front of the whole class. What does the Thinking Brain suggest?',answer:1,choices:['Never answer questions out loud again to avoid embarrassment.','Take a breath, listen to the correct answer, and remember that everyone gets things wrong.','Laugh it off loudly so people know you don\'t care.'],explain:'Getting something wrong in public feels huge — but the Thinking Brain knows: it\'s forgotten by most people in five minutes, and the learning from it lasts a lifetime.'},
+  {q:'A post says "Share this if you believe in kindness — only cruel people don\'t share." What do you do?',answer:2,choices:['Share it — you don\'t want to look cruel.','Just like it instead of sharing so it\'s not as bad.','Recognize this as a guilt trap and scroll past without sharing.'],explain:'Your kindness is shown in how you treat real people — not in which posts you share. When a post defines your character based on clicking, that\'s a manipulation tactic your Thinking Brain sees through.'},
+  {q:'Your parents set a rule that you can\'t be on your phone after 9pm. You think the rule is unfair. What\'s the Thinking Brain move?',answer:1,choices:['Secretly use your phone under the covers anyway.','Calmly explain your view and ask if you can discuss the rule together.','Ignore the rule on weekends since that wasn\'t specifically mentioned.'],explain:'Expressing disagreement calmly and asking to discuss it is how the Thinking Brain handles rules it doesn\'t like. It\'s also much more likely to actually change the rule than breaking it is!'},
+  {q:'A video online claims eating a certain food cures all diseases. It has millions of views. What should you do?',answer:2,choices:['Try the food — millions of views means it must work.','Share it with family so they can try it too.','Check whether real doctors or scientists have confirmed this before believing or sharing.'],explain:'View counts don\'t make health claims true. Misinformation spreads faster than facts online. The Thinking Brain always checks the source — especially for health information.'},
+  {q:'You won a competition and your best friend came last. They look really sad. What\'s the kind AND smart thing to do?',answer:1,choices:['Celebrate loudly — you worked hard and deserve it!','Celebrate genuinely but check in with your friend privately and acknowledge their feelings.','Don\'t celebrate at all so your friend doesn\'t feel worse.'],explain:'You can be proud of winning AND be a good friend at the same time. The Thinking Brain knows: acknowledging someone else\'s disappointment doesn\'t shrink your achievement — it makes you a better person.'},
+  {q:'Someone online is being really mean to you in a comment section. What\'s the Thinking Brain response?',answer:2,choices:['Write back something even meaner — they started it.','Write a calm, rational explanation of why they\'re wrong.','Don\'t engage — block, report, and tell a trusted adult if needed.'],explain:'Engaging with online meanness almost never ends well and usually makes things worse. The Thinking Brain knows the most powerful move is often no move at all — plus blocking and reporting.'},
+  {q:'You\'re about to click on a link that promises free game codes. The website looks a little strange. What do you do?',answer:1,choices:['Click it — worst case you just close the tab.','Stop, show it to a parent or trusted adult before clicking anything.','Click it but don\'t enter any information.'],explain:'Suspicious websites can install software on your device just from visiting them, even without entering info. The Thinking Brain always shows unusual links to a trusted adult first!'},
+  {q:'Your friend is being left out of a group and looks lonely. You\'re worried about what the group will think if you go talk to your friend. What do you do?',answer:1,choices:['Wait and see — maybe the group will invite them later.','Go talk to your friend — being kind matters more than what the group thinks.','Tell the group you think they should include your friend.'],explain:'The Thinking Brain knows that being genuinely kind to someone who needs it — even when it might cost you social points — is one of the most important choices you can make. Real friends notice.'},
+  {q:'You feel really angry at someone. The Thinking Brain says to do what FIRST?',answer:2,choices:['Tell them exactly how you feel right now while the feelings are fresh.','Write an angry message — even if you don\'t send it, writing helps.','Pause, breathe, and wait until you\'re calmer before deciding what to say.'],explain:'Anger makes us say and do things we later regret. The Thinking Brain knows: the gap between feeling and acting is where your power lives. Pausing and breathing literally calms the nervous system first.'},
+  {q:'You hear something you\'re not sure is true. The most Thinking Brain thing to do is:',answer:1,choices:['Believe it if it sounds reasonable.','Ask where the information came from and whether there\'s evidence.','Only believe it if more than two people say the same thing.'],explain:'Asking "where did this come from?" and "what\'s the evidence?" are the two most powerful Thinking Brain questions. They work for rumors, news, social media posts, and health claims!'},
+  {q:'A stranger online offers to help you get better at your favorite game if you video chat with them. What do you do?',answer:2,choices:['Say yes — they seem nice and you really want to improve.','Ask them to prove they\'re actually good at the game first.','Say no and tell a trusted adult about the message.'],explain:'Video chatting with strangers online is always unsafe — no matter how nice they seem. The Thinking Brain\'s safety rule is absolute here: tell a trusted adult about ANY message from strangers online.'},
+  {q:'You accidentally broke something at a friend\'s house. Nobody saw it. What does the Thinking Brain say?',answer:1,choices:['Leave it and say nothing — it was an accident and accidents aren\'t your fault.','Tell your friend\'s parent what happened and offer to help fix or replace it.','Move something else near it so it looks like it fell on its own.'],explain:'The Thinking Brain knows that honesty — even when scary — always feels better than guilt. It also builds real trust that lasts. Accidents happen; covering them up is a choice.'},
+];
+
+// HOST LINES (pre-written, no API needed)
+const HOST_CORRECT = [
+  "That's EXACTLY right! Your Thinking Brain is ON FIRE today! 🔥",
+  "YES! The crowd goes wild! You nailed it! 🎉",
+  "Brilliant! You're thinking like a true Brain Blast champion! 🏆",
+  "CORRECT! I can see that Thinking Brain working hard! ⚡",
+  "Outstanding answer! The audience is on their feet! 🌟",
+  "BOOM! Perfect answer! You're making this look easy! 💥",
+  "That's it! Sharp, sharp, SHARP thinking right there! 🎯",
+  "Incredible! You're really understanding how brains work! 🧠",
+];
+const HOST_WRONG = [
+  "Ooh, not quite — but that's how we learn! Here's why... 🤔",
+  "Great guess, but the Thinking Brain has a different take here. Check it out!",
+  "Not this time — but every question is a brain workout! Here's the answer...",
+  "Hmm, close but not quite! This one trips a lot of people up. Here's why...",
+  "The Feeling Brain might have answered that one! Let's see what the Thinking Brain says...",
+  "Not quite — and that's EXACTLY why we practice! Here's the real answer...",
+];
+const HOST_STREAK = [
+  "THREE IN A ROW!! The crowd is going CRAZY!! 🎊🎊🎊",
+  "FOUR STRAIGHT! You are UNSTOPPABLE! ⚡⚡⚡",
+  "FIVE IN A ROW!! LEGENDARY PERFORMANCE!! 🏆🏆🏆",
+];
+const CROWD_CORRECT = ['🙌🙌🙌🎉🙌🙌🙌','⭐⭐⭐🎊⭐⭐⭐','🎶👏👏👏🎶','🌟🎉🌟🎉🌟','🔥🔥🔥💥🔥🔥🔥'];
+const CROWD_WRONG = ['😮😮😮','🤔😮🤔','😯😯😯'];
+
+const BRAIN_FACTS = [
+  'Your <strong>Thinking Brain</strong> (prefrontal cortex) literally gets stronger the more you use it — like a mental muscle!',
+  'The <strong>Feeling Brain</strong> (amygdala) processes emotions in milliseconds. The Thinking Brain takes 3-5 seconds. That pause is where your power lives!',
+  'Scientists found that <strong>asking questions</strong> before believing something is one of the strongest predictors of good decision-making throughout life.',
+  'Your brain creates <strong>new connections</strong> every time you learn something — including right now, playing this game!',
+  'Critical thinking is a <strong>learnable skill</strong>, not something you\'re born with. Every time you spot a trick or question a claim, you\'re training it!',
+  'The average person is exposed to <strong>thousands of pieces of information</strong> every day. Your Thinking Brain is your filter!',
+  'Studies show that <strong>pausing before reacting</strong> — even for 5 seconds — dramatically improves the quality of decisions. Five seconds is free!',
+];
+
+let questions = [], current = 0, score = 0, streak = 0, bestStreak = 0, correct = 0;
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function makeStars(){
+  const wrap=document.getElementById('stars');
+  for(let i=0;i<50;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*2.5+0.5;
+    s.style.cssText='width:'+sz+'px;height:'+sz+'px;top:'+(Math.random()*100)+'%;left:'+(Math.random()*100)+'%;animation-delay:'+(Math.random()*4)+'s;animation-duration:'+(2+Math.random()*3)+'s';
+    wrap.appendChild(s);
+  }
+}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function startGame(){
+  const tf = shuffle(TF_QUESTIONS).slice(0,5).map(q=>({...q,cat:'tf'}));
+  const rf = shuffle(RF_QUESTIONS).slice(0,5).map(q=>({...q,cat:'rf'}));
+  const wd = shuffle(WD_QUESTIONS).slice(0,5).map(q=>({...q,cat:'wd'}));
+  questions = shuffle([...tf,...rf,...wd]);
+  current=0;score=0;streak=0;bestStreak=0;correct=0;
+  updateScore();
+  renderQuestion();
+  showScreen('game');
+}
+
+function updateScore(){
+  document.getElementById('scoreDisp').textContent=score;
+  document.getElementById('streakDisp').textContent=streak;
+  document.getElementById('correctDisp').textContent=correct;
+  document.getElementById('progressFill').style.width=((current/15)*100)+'%';
+  for(let i=0;i<5;i++){
+    const d=document.getElementById('sd'+i);
+    d.className='streak-dot'+(i<streak?' lit':'');
+  }
+}
+
+function catInfo(cat){
+  if(cat==='tf') return {cls:'tf',label:'🧊🔥 Think or Feel?'};
+  if(cat==='rf') return {cls:'rf',label:'✅❌ Real or Fake?'};
+  return {cls:'wd',label:'💡 What Would YOU Do?'};
+}
+
+function renderQuestion(){
+  if(current>=15){endGame();return;}
+  const q=questions[current];
+  const ci=catInfo(q.cat);
+  const card=document.getElementById('qCard');
+  const letters=['A','B','C'];
+  const answerHtml=q.choices.map((ch,i)=>
+    '<button class="ans-btn" id="ans-'+i+'" onclick="chooseAnswer('+i+')">'
+    +'<span class="ans-letter">'+letters[i]+'</span>'+ch
+    +'</button>'
+  ).join('');
+  card.innerHTML=
+    '<div class="q-num">Question '+(current+1)+' of 15</div>'
+    +'<div class="cat-tag '+ci.cls+'">'+ci.label+'</div>'
+    +'<div class="q-text">'+q.q+'</div>'
+    +'<div class="answers">'+answerHtml+'</div>'
+    +'<div id="feedback" style="display:none"></div>';
+  document.getElementById('crowdRow').textContent='';
+  setHost('🎤',getIntroLine(q.cat));
+}
+
+function getIntroLine(cat){
+  if(cat==='tf') return 'Think or Feel? Which brain took over — or made the smart call?';
+  if(cat==='rf') return 'Real or Fake? Activate that Thinking Brain and spot the truth!';
+  return 'What Would YOU Do? Find the Thinking Brain response!';
+}
+
+function chooseAnswer(idx){
+  const q=questions[current];
+  const isCorrect=(idx===q.answer);
+  q.choices.forEach((_,i)=>{
+    const b=document.getElementById('ans-'+i);
+    b.disabled=true;
+    if(i===q.answer) b.classList.add('correct');
+    else if(i===idx&&!isCorrect) b.classList.add('wrong');
+  });
+
+  if(isCorrect){
+    streak++;correct++;
+    if(streak>bestStreak) bestStreak=streak;
+    const bonus=streak>=3?streak*5:0;
+    score+=10+bonus;
+    const hostLine=streak>=5?HOST_STREAK[2]:streak>=4?HOST_STREAK[1]:streak>=3?HOST_STREAK[0]:HOST_CORRECT[Math.floor(Math.random()*HOST_CORRECT.length)];
+    setHost('🎤',hostLine);
+    document.getElementById('crowdRow').textContent=CROWD_CORRECT[Math.floor(Math.random()*CROWD_CORRECT.length)];
+  } else {
+    streak=0;
+    setHost('🤔',HOST_WRONG[Math.floor(Math.random()*HOST_WRONG.length)]);
+    document.getElementById('crowdRow').textContent=CROWD_WRONG[Math.floor(Math.random()*CROWD_WRONG.length)];
+  }
+  updateScore();
+
+  const fb=document.getElementById('feedback');
+  fb.style.display='block';
+  fb.innerHTML='<div class="host-feedback '+(isCorrect?'correct':'wrong')+'">'+q.explain+'</div>'
+    +'<button class="btn-next-q" onclick="nextQuestion()">'+(current+1<15?'Next Question ➡️':'See Results 🏆')+'</button>';
+}
+
+function setHost(emoji,text){
+  document.getElementById('hostAvatar').textContent=emoji;
+  document.getElementById('hostSpeech').textContent=text;
+}
+
+function nextQuestion(){
+  current++;
+  updateScore();
+  renderQuestion();
+}
+
+function endGame(){
+  const pct=Math.round((correct/15)*100);
+  let title,badge,emoji;
+  if(pct>=90){title='Brain Superstar!';badge='LEGEND';emoji='🌟';}
+  else if(pct>=73){title='Sharp Thinker!';badge='CHAMPION';emoji='🏆';}
+  else if(pct>=53){title='Getting Sharper!';badge='CONTENDER';emoji='🎯';}
+  else{title='Brain in Training!';badge='ROOKIE';emoji='💪';}
+  document.getElementById('resTitle').textContent=title;
+  document.getElementById('resEmoji').textContent=emoji;
+  document.getElementById('resBadge').textContent=badge;
+  document.getElementById('resScore').textContent=score;
+  document.getElementById('resCorrect').textContent=correct+'/15';
+  document.getElementById('resBest').textContent=bestStreak;
+  const fact=BRAIN_FACTS[Math.floor(Math.random()*BRAIN_FACTS.length)];
+  document.getElementById('resFact').innerHTML='<strong>🧠 Brain Fact:</strong> '+fact;
+  showScreen('results');
+  if(pct>=70) launchConfetti();
+}
+
+function restartGame(){startGame();}
+
+function launchConfetti(){
+  const colors=['#FFD166','#FF4D9E','#00E5FF','#06D6A0','#a78bfa','#FF6B35'];
+  for(let i=0;i<70;i++){
+    const c=document.createElement('div');c.className='confetti-piece';
+    c.style.cssText='left:'+(Math.random()*100)+'vw;background:'+colors[Math.floor(Math.random()*colors.length)]+';animation-duration:'+(1.5+Math.random()*2)+'s;animation-delay:'+(Math.random()*0.6)+'s;width:'+(6+Math.random()*8)+'px;height:'+(6+Math.random()*8)+'px;border-radius:'+(Math.random()>0.5?'50%':'2px')+';';
+    document.body.appendChild(c);
+    c.addEventListener('animationend',function(){c.remove();});
+  }
+}
+
+makeStars();
+</script>
+</body>
+</html>
