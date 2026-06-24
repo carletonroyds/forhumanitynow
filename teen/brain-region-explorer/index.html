@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroScan — Brain Region Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:    #060810;
+  --bg2:   #0A0E1A;
+  --bg3:   #0F1525;
+  --grid:  rgba(0,180,255,0.04);
+  --border:        rgba(0,180,255,0.12);
+  --border-bright: rgba(0,212,255,0.35);
+  --text:       #C8D8E8;
+  --text-dim:   rgba(200,216,232,0.45);
+  --text-bright:#EEF4FF;
+  --cyan:     #00D4FF;
+  --cyan-dim: rgba(0,212,255,0.15);
+  --cyan-glow:rgba(0,212,255,0.4);
+  --panel: 360px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;overflow:hidden;}
+
+/* Grid bg */
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 55% 70% at 38% 48%, rgba(0,100,180,0.09) 0%, transparent 65%),
+    radial-gradient(ellipse 35% 40% at 70% 55%, rgba(80,0,180,0.06) 0%, transparent 60%);
+  pointer-events:none;z-index:0;}
+
+/* Scanline */
+.scanline{position:fixed;left:0;right:0;top:-3px;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  opacity:0.2;animation:scanDown 7s linear infinite;pointer-events:none;z-index:1;}
+@keyframes scanDown{0%{top:-3px}100%{top:100vh}}
+
+/* ── HUD Header ── */
+.hud{position:relative;z-index:10;display:flex;align-items:center;gap:18px;
+  padding:12px 24px;border-bottom:1px solid var(--border);
+  background:rgba(6,8,16,0.85);backdrop-filter:blur(12px);}
+.hud-logo{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:0.22em;text-transform:uppercase;color:var(--cyan);
+  display:flex;align-items:center;gap:7px;}
+.hud-dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan),0 0 16px var(--cyan);
+  animation:pdot 2s ease-in-out infinite;}
+@keyframes pdot{0%,100%{opacity:1;box-shadow:0 0 8px var(--cyan),0 0 16px var(--cyan)}
+                50%{opacity:0.5;box-shadow:0 0 4px var(--cyan)}}
+.hud-title{font-family:'Syne',sans-serif;font-size:clamp(14px,2vw,20px);
+  font-weight:800;letter-spacing:-0.01em;color:var(--text-bright);}
+.hud-title span{color:var(--cyan);}
+.hud-space{flex:1;}
+.hud-stats{display:flex;gap:14px;align-items:center;}
+.stat{display:flex;flex-direction:column;align-items:flex-end;}
+.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.15em;
+  text-transform:uppercase;color:var(--text-dim);}
+.stat-val{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:500;
+  color:var(--cyan);line-height:1;text-shadow:0 0 10px var(--cyan-glow);}
+.sdiv{width:1px;height:28px;background:var(--border);}
+.prog-wrap{width:130px;}
+.prog-labels{display:flex;justify-content:space-between;
+  font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;}
+.prog-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--cyan),#7B40FF);
+  border-radius:2px;box-shadow:0 0 6px var(--cyan-glow);
+  transition:width 0.6s cubic-bezier(0.34,1.4,0.64,1);width:0%;}
+
+/* ── App layout ── */
+.app{position:relative;z-index:5;display:flex;height:calc(100vh - 53px);}
+
+/* ── Brain stage ── */
+.brain-stage{flex:1;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;}
+
+.brain-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--text-dim);white-space:nowrap;
+  display:flex;align-items:center;gap:8px;z-index:20;}
+.brain-hint::before,.brain-hint::after{content:'';width:30px;height:1px;background:var(--border);}
+
+/* Brain container — aspect ratio matches SVG artboard (2000x1400) */
+.brain-container{
+  position:relative;
+  width:100%;max-width:860px;
+  aspect-ratio: 2000 / 1400;
+}
+
+/* The brain PNG — transparent background floats against dark HUD */
+.brain-img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;
+  object-position:center;
+}
+
+/* SVG overlay — sits on top, same size */
+.brain-overlay{
+  position:absolute;inset:0;width:100%;height:100%;
+  overflow:visible;
+  pointer-events:none; /* children opt-in */
+}
+
+/* ── Hotspot dots ── */
+.hotspot{
+  cursor:pointer;
+  pointer-events:all;
+}
+
+/* Outer halo — always visible, soft */
+.hotspot-halo{
+  fill:none;
+  stroke-width:2.5;
+  opacity:0.35;
+  transition:all 0.3s ease;
+}
+
+/* Main dot — solid, large, always visible */
+.hotspot-core{
+  opacity:0.88;
+  stroke:white;
+  stroke-width:2.5;
+  transition:all 0.25s ease;
+  filter:drop-shadow(0 0 6px currentColor);
+}
+
+/* Spinning dashed ring — shown on hover + active */
+.hotspot-ring{
+  fill:none;
+  stroke-width:2.5;
+  opacity:0;
+  transition:opacity 0.3s ease;
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+/* Outward pulse rings */
+.hotspot-pulse{
+  fill:none;
+  stroke-width:2;
+  opacity:0;
+}
+
+/* Idle breathing on the halo only */
+@keyframes idle-breathe{
+  0%,100%{opacity:0.25;} 50%{opacity:0.55;}
+}
+.hotspot-halo{animation:idle-breathe 3.5s ease-in-out infinite;}
+
+/* Hover: ring appears, core brightens */
+.hotspot:hover .hotspot-core{opacity:1;stroke-width:3;}
+.hotspot:hover .hotspot-ring{opacity:0.7;}
+.hotspot:hover .hotspot-halo{opacity:0.6;}
+
+/* Active: spinning ring + pulse waves */
+.hotspot.active .hotspot-core{opacity:1;stroke-width:3;}
+.hotspot.active .hotspot-ring{
+  opacity:1;
+  animation:ring-spin 3s linear infinite;
+}
+@keyframes ring-spin{
+  0%{stroke-dashoffset:0} 100%{stroke-dashoffset:-140}
+}
+.hotspot.active .hotspot-pulse{
+  animation:pulse-out 2.2s ease-out infinite;
+}
+.hotspot.active .hotspot-pulse:nth-child(2){animation-delay:1.1s;}
+@keyframes pulse-out{
+  0%  {opacity:0.65; stroke-width:2.5;}
+  100%{opacity:0;    stroke-width:0.5;}
+}
+
+/* Visited tick — green dot top-right of core */
+.visited-dot{
+  fill:#39FF80;
+  stroke:white;
+  stroke-width:1.5;
+  opacity:0;
+  transition:opacity 0.4s ease;
+}
+.hotspot.visited .visited-dot{opacity:1;}
+
+/* ── Region highlight shapes (sit UNDER the dots, OVER the image) ── */
+.region-highlight{
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.4s ease;
+}
+.region-highlight.show{opacity:1;}
+
+/* The filled shape — semi-transparent color wash */
+.rh-fill{
+  opacity:0;
+  transition:opacity 0.4s ease;
+}
+.region-highlight.show .rh-fill{opacity:0.22;}
+
+/* The glowing stroke outline */
+.rh-stroke{
+  fill:none;
+  stroke-width:3;
+  opacity:0;
+  transition:opacity 0.4s ease;
+}
+.region-highlight.show .rh-stroke{opacity:1;}
+
+/* Animated glow pulse on the stroke */
+@keyframes outline-glow{
+  0%,100%{stroke-width:3; opacity:0.9;}
+  50%    {stroke-width:5; opacity:1;}
+}
+.region-highlight.show .rh-stroke{
+  animation:outline-glow 2s ease-in-out infinite;
+}
+
+/* Region label that appears on selection */
+.region-label-svg{
+  font-family:'Syne',sans-serif;
+  font-size:13px;
+  font-weight:700;
+  fill:white;
+  text-anchor:middle;
+  dominant-baseline:middle;
+  opacity:0;
+  transition:opacity 0.4s ease;
+  pointer-events:none;
+  paint-order:stroke;
+  stroke:rgba(0,0,0,0.8);
+  stroke-width:4px;
+  stroke-linejoin:round;
+  letter-spacing:0.03em;
+}
+.region-highlight.show .region-label-svg{opacity:1;}
+
+/* ── Legend strip bottom ── */
+.legend-bar{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  display:flex;gap:5px;flex-wrap:nowrap;z-index:20;
+}
+.leg{display:flex;align-items:center;gap:4px;
+  font-family:'IBM Plex Mono',monospace;font-size:8px;
+  letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--text-dim);cursor:pointer;
+  padding:3px 8px;border:1px solid var(--border);border-radius:2px;
+  background:rgba(6,8,16,0.7);transition:all 0.2s ease;white-space:nowrap;}
+.leg:hover{color:var(--text-bright);border-color:var(--border-bright);}
+.leg.leg-active{border-color:currentColor;color:var(--text-bright);}
+.leg.leg-visited{opacity:1;}
+.leg-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+
+/* Ticker */
+.ticker{position:absolute;bottom:0;left:0;right:0;
+  font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--text-dim);opacity:0.4;
+  overflow:hidden;height:18px;display:flex;align-items:center;
+  border-top:1px solid var(--border);background:rgba(6,8,16,0.5);}
+.ticker-inner{white-space:nowrap;animation:tick 30s linear infinite;padding-left:100%;}
+@keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ── Info Panel ── */
+.info-panel{
+  width:var(--panel);flex-shrink:0;
+  border-left:1px solid var(--border);
+  overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  background:rgba(6,8,16,0.6);backdrop-filter:blur(8px);
+}
+.info-panel::-webkit-scrollbar{width:3px;}
+.info-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* Empty state */
+.empty-st{
+  height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:32px 28px;text-align:center;gap:14px;
+}
+.empty-orb{width:72px;height:72px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(0,212,255,0.2),rgba(0,212,255,0.04));
+  border:1px solid var(--border-bright);
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+  animation:float-orb 3s ease-in-out infinite;
+  box-shadow:0 0 24px rgba(0,212,255,0.08);}
+@keyframes float-orb{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.empty-st h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;
+  color:var(--text-bright);}
+.empty-st p{font-size:12px;line-height:1.65;color:var(--text-dim);font-weight:300;}
+.empty-cue{font-family:'IBM Plex Mono',monospace;font-size:9px;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--cyan);
+  animation:blink 1.6s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:0.7}50%{opacity:0.2}}
+
+/* Region content */
+.rgn-content{display:none;}
+
+/* Top bar */
+.panel-top{
+  padding:18px 20px 14px;
+  border-bottom:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+.panel-top::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--rc,var(--cyan)),transparent);
+  opacity:0.5;
+}
+.panel-id{display:flex;align-items:center;gap:7px;margin-bottom:8px;}
+.panel-num{font-family:'IBM Plex Mono',monospace;font-size:9px;
+  color:var(--text-dim);letter-spacing:0.1em;}
+.panel-tag{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:500;
+  letter-spacing:0.14em;text-transform:uppercase;
+  padding:2px 7px;border-radius:2px;border:1px solid;}
+.panel-revisit{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);
+  display:none;align-items:center;gap:3px;}
+.panel-revisit.show{display:flex;}
+.panel-name{font-family:'Syne',sans-serif;font-size:clamp(18px,2.5vw,24px);
+  font-weight:800;letter-spacing:-0.02em;line-height:1.1;}
+.panel-nick{font-family:'IBM Plex Sans',sans-serif;font-style:italic;
+  font-size:12px;font-weight:300;color:var(--text-dim);margin-top:3px;}
+
+/* T/R Meter */
+.tr-wrap{margin:12px 20px;padding:11px 14px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:3px;}
+.tr-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:7px;}
+.tr-track{height:5px;background:rgba(255,255,255,0.05);border-radius:3px;
+  position:relative;margin-bottom:5px;}
+.tr-left{position:absolute;top:0;left:0;bottom:0;border-radius:3px 0 0 3px;
+  background:linear-gradient(90deg,#FF3D3D,#FF7070);
+  box-shadow:0 0 6px rgba(255,61,61,0.5);
+  transition:width 0.6s cubic-bezier(0.34,1.2,0.64,1);}
+.tr-right{position:absolute;top:0;right:0;bottom:0;border-radius:0 3px 3px 0;
+  background:linear-gradient(270deg,#39FF80,#00E5CC);
+  box-shadow:0 0 6px rgba(57,255,128,0.5);
+  transition:width 0.6s cubic-bezier(0.34,1.2,0.64,1);}
+.tr-pin{position:absolute;top:-4px;width:3px;height:13px;border-radius:2px;
+  background:white;box-shadow:0 0 5px white;transform:translateX(-50%);
+  transition:left 0.6s cubic-bezier(0.34,1.2,0.64,1);}
+.tr-ends{display:flex;justify-content:space-between;
+  font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.08em;text-transform:uppercase;}
+.tr-t{color:#FF7070;}.tr-r{color:#39FF80;}
+
+/* Sections */
+.psec{padding:12px 20px;border-bottom:1px solid var(--border);
+  animation:sin 0.35s ease both;}
+@keyframes sin{from{opacity:0;transform:translateX(6px)}to{opacity:1;transform:translateX(0)}}
+.psec:nth-child(1){animation-delay:0s}
+.psec:nth-child(2){animation-delay:0.05s}
+.psec:nth-child(3){animation-delay:0.1s}
+.psec:nth-child(4){animation-delay:0.15s}
+.psec:nth-child(5){animation-delay:0.2s}
+
+.shdr{display:flex;align-items:center;gap:6px;
+  font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:500;
+  letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:7px;}
+.shdr::after{content:'';flex:1;height:1px;background:var(--border);}
+.sbody{font-size:12.5px;line-height:1.7;color:var(--text);font-weight:300;}
+.sbody strong{font-weight:500;color:var(--text-bright);}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+.chip{font-family:'IBM Plex Mono',monospace;font-size:9px;
+  padding:3px 8px;border-radius:2px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  color:var(--text-dim);display:flex;align-items:center;gap:4px;}
+
+/* Gordon box */
+.gordon{margin:0 20px 12px;padding:12px 14px;
+  background:linear-gradient(135deg,rgba(0,212,255,0.04),rgba(0,212,255,0.07));
+  border-left:2px solid var(--cyan);border-radius:0 3px 3px 0;
+  animation:sin 0.35s 0.08s ease both;}
+.gordon-hdr{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--cyan);margin-bottom:5px;
+  display:flex;align-items:center;gap:5px;}
+.gordon-hdr::before{content:'';width:10px;height:1px;background:var(--cyan);box-shadow:0 0 4px var(--cyan);}
+.gordon-body{font-size:12.5px;line-height:1.65;color:var(--text);
+  font-family:'IBM Plex Sans',sans-serif;font-style:italic;font-weight:300;}
+
+/* Scenario */
+.scenario{margin:0 20px 12px;padding:11px 14px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:3px;
+  animation:sin 0.35s 0.12s ease both;}
+.scenario-hdr{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;}
+.scenario-body{font-size:12.5px;line-height:1.65;color:var(--text);font-weight:300;}
+
+/* Quiz */
+.quiz{margin:0 20px 20px;padding:14px;border:1px solid;border-radius:3px;
+  animation:sin 0.35s 0.16s ease both;}
+.quiz-hdr{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.14em;
+  text-transform:uppercase;margin-bottom:8px;}
+.quiz-q{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  color:var(--text-bright);line-height:1.4;margin-bottom:10px;letter-spacing:-0.01em;}
+.quiz-opts{display:flex;flex-direction:column;gap:5px;}
+.qopt{padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:2px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;
+  color:var(--text);cursor:pointer;text-align:left;
+  transition:all 0.18s ease;font-weight:300;}
+.qopt:hover:not(:disabled){background:rgba(255,255,255,0.06);border-color:var(--border-bright);
+  color:var(--text-bright);transform:translateX(3px);}
+.qopt.correct{background:rgba(57,255,128,0.09);border-color:#39FF80;color:#7DFFB0;}
+.qopt.incorrect{background:rgba(255,61,61,0.07);border-color:#FF3D3D;color:#FF9090;}
+.qopt:disabled{cursor:not-allowed;}
+.qfb{display:none;margin-top:9px;padding:9px 11px;border-radius:2px;
+  font-size:12px;line-height:1.6;font-weight:300;animation:sin 0.3s ease;}
+.qfb.show{display:block;}
+.qfb.ok{background:rgba(57,255,128,0.07);border:1px solid rgba(57,255,128,0.22);color:#7DFFB0;}
+.qfb.no{background:rgba(255,61,61,0.06);border:1px solid rgba(255,61,61,0.18);color:#FF9090;}
+.pts{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:10px;
+  letter-spacing:0.05em;margin-right:5px;}
+
+/* ── Completion ── */
+.comp-overlay{position:fixed;inset:0;z-index:100;
+  background:rgba(6,8,16,0.93);backdrop-filter:blur(16px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.5s ease;}
+.comp-overlay.show{opacity:1;pointer-events:all;}
+.comp-card{background:var(--bg3);border:1px solid var(--border-bright);
+  border-radius:6px;padding:44px 40px;text-align:center;max-width:420px;
+  box-shadow:0 0 60px rgba(0,212,255,0.1),0 0 120px rgba(0,212,255,0.05);
+  animation:pop 0.5s cubic-bezier(0.34,1.4,0.64,1) both;}
+@keyframes pop{from{transform:scale(0.85);opacity:0}to{transform:scale(1);opacity:1}}
+.comp-icon{font-size:48px;display:block;margin-bottom:14px;
+  animation:spinin 0.6s cubic-bezier(0.34,1.4,0.64,1);}
+@keyframes spinin{from{transform:rotate(-20deg) scale(0)}to{transform:rotate(0) scale(1)}}
+.comp-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;
+  color:var(--text-bright);letter-spacing:-0.02em;margin-bottom:6px;}
+.comp-title span{color:var(--cyan);}
+.comp-p{font-size:12.5px;line-height:1.65;color:var(--text-dim);
+  font-weight:300;margin-bottom:20px;}
+.comp-slbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:3px;}
+.comp-score{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;
+  color:var(--cyan);letter-spacing:-0.04em;display:block;line-height:1;
+  text-shadow:0 0 20px var(--cyan-glow),0 0 40px rgba(0,212,255,0.25);}
+.comp-max{font-family:'IBM Plex Mono',monospace;font-size:10px;
+  color:var(--text-dim);margin-bottom:24px;display:block;}
+.comp-quote{font-family:'IBM Plex Sans',sans-serif;font-style:italic;
+  font-size:11.5px;color:var(--text-dim);margin-bottom:24px;line-height:1.6;
+  border-left:2px solid var(--cyan);padding-left:11px;text-align:left;}
+.restart-btn{background:var(--cyan);color:var(--bg);border:none;border-radius:2px;
+  padding:12px 28px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:all 0.2s ease;}
+.restart-btn:hover{box-shadow:0 0 20px var(--cyan-glow);transform:translateY(-2px);}
+
+/* Toast */
+.toast{position:fixed;bottom:18px;left:50%;
+  transform:translateX(-50%) translateY(55px);
+  background:var(--bg3);border:1px solid var(--border-bright);border-radius:2px;
+  padding:9px 16px;font-family:'IBM Plex Mono',monospace;font-size:10px;
+  letter-spacing:0.08em;color:var(--text-bright);z-index:50;pointer-events:none;
+  transition:transform 0.4s cubic-bezier(0.34,1.4,0.64,1);
+  display:flex;align-items:center;gap:9px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast-pts{color:var(--cyan);font-weight:500;}
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+
+<!-- HUD -->
+<header class="hud">
+  <div class="hud-logo"><span class="hud-dot"></span>NEUROSCAN</div>
+  <div class="hud-title">Brain Region <span>Explorer</span></div>
+  <div class="hud-space"></div>
+  <div class="hud-stats">
+    <div class="stat">
+      <span class="stat-lbl">Score</span>
+      <span class="stat-val" id="hud-score">000</span>
+    </div>
+    <div class="sdiv"></div>
+    <div class="stat">
+      <span class="stat-lbl">Explored</span>
+      <span class="stat-val" id="hud-exp">0<span style="font-size:11px;opacity:0.4">/11</span></span>
+    </div>
+    <div class="sdiv"></div>
+    <div class="prog-wrap">
+      <div class="prog-labels"><span>Progress</span><span id="prog-pct">0%</span></div>
+      <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+    </div>
+  </div>
+</header>
+
+<!-- App -->
+<div class="app">
+
+  <!-- Brain Stage -->
+  <div class="brain-stage">
+    <div class="brain-hint">Tap a glowing region to scan it</div>
+
+    <div class="brain-container" id="brain-container">
+      <!-- Real brain photo — sits behind SVG overlay -->
+      <img class="brain-img" src="./brain_tranparent.png" alt="Brain anatomy" id="brain-img"
+           onerror="this.style.display='none'"/>
+
+      <!-- SVG overlay — viewBox matches Illustrator artboard exactly (2000x1400) -->
+      <svg class="brain-overlay" id="brain-svg"
+           viewBox="0 0 2000 1400" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <!-- Glow filter for region outlines -->
+          <filter id="shape-glow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="10" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- ══ REGION HIGHLIGHTS — exact paths from your brain-overlay.svg ══ -->
+        <!-- Invisible by default; fill + glowing stroke appear on click -->
+
+        <g class="region-highlight" id="rh-prefrontal">
+          <path class="rh-fill" fill="#FF9500" d="M633,841s-5,7-58,6-10,8-78,0-98-36-98-36c0,0-75-26-92-115s-13-93-6-101-10,3-17-40,8-39,28-88,4-49,57-112c16.66-19.8,6.52-11.02,45.76-57.01s131.24-32.99,204.24,43.01,81,141,77,166,16,191-4,223c-31,30-71,66-59,111Z"/>
+          <path class="rh-stroke" stroke="#FF9500" filter="url(#shape-glow)" d="M633,841s-5,7-58,6-10,8-78,0-98-36-98-36c0,0-75-26-92-115s-13-93-6-101-10,3-17-40,8-39,28-88,4-49,57-112c16.66-19.8,6.52-11.02,45.76-57.01s131.24-32.99,204.24,43.01,81,141,77,166,16,191-4,223c-31,30-71,66-59,111Z"/>
+          <text class="region-label-svg" x="390" y="600" fill="#FF9500">Prefrontal Cortex</text>
+        </g>
+
+        <g class="region-highlight" id="rh-frontal">
+          <path class="rh-fill" fill="#FF6B6B" d="M1104,107s-54-7-69,45c25,26,7,65,7,65,0,0-2,18-26,46s-32,82-9,134-6,113,80,133l31,8s-24,11-42,20-31,0-55,9-36,29-54,36-6-9-79,4-108,34-114,44-25,38-57,60-96,85-84,130c0,0-5,7-58,6s-10,8-78,0-98-36-98-36c0,0-75-26-92-115s-13-93-6-101-10,3-17-40,8-39,28-88,4-49,57-112,83-119,174-158c56-37,54-44,190-81,58-6,73-1,73-1,0,0,27-14,78-17s49,0,63-2,80-17,164,12"/>
+          <path class="rh-stroke" stroke="#FF6B6B" filter="url(#shape-glow)" d="M1104,107s-54-7-69,45c25,26,7,65,7,65,0,0-2,18-26,46s-32,82-9,134-6,113,80,133l31,8s-24,11-42,20-31,0-55,9-36,29-54,36-6-9-79,4-108,34-114,44-25,38-57,60-96,85-84,130c0,0-5,7-58,6s-10,8-78,0-98-36-98-36c0,0-75-26-92-115s-13-93-6-101-10,3-17-40,8-39,28-88,4-49,57-112,83-119,174-158c56-37,54-44,190-81,58-6,73-1,73-1,0,0,27-14,78-17s49,0,63-2,80-17,164,12"/>
+          <text class="region-label-svg" x="720" y="470" fill="#FF6B6B">Frontal Lobe</text>
+        </g>
+
+        <g class="region-highlight" id="rh-parietal">
+          <path class="rh-fill" fill="#FFD93D" d="M1007,397c-22.06-52.4-15-106,9-134s26-46,26-46c0,0,18-39-7-65,15-52,69-45,69-45,0,0,72-10,110,11s69,29,69,29c0,0,142,41,152,86,0,0,51,35,59,60,0,0,79,52,87,123s2,84-17,104-48,46-97,17c0,0-45,78-60,90s-43.62-55.21-175-84c-73-16-102-5-102-5,0,0-67-8-123-141Z"/>
+          <path class="rh-stroke" stroke="#FFD93D" filter="url(#shape-glow)" d="M1007,397c-22.06-52.4-15-106,9-134s26-46,26-46c0,0,18-39-7-65,15-52,69-45,69-45,0,0,72-10,110,11s69,29,69,29c0,0,142,41,152,86,0,0,51,35,59,60,0,0,79,52,87,123s2,84-17,104-48,46-97,17c0,0-45,78-60,90s-43.62-55.21-175-84c-73-16-102-5-102-5,0,0-67-8-123-141Z"/>
+          <text class="region-label-svg" x="1120" y="290" fill="#FFD93D">Parietal Lobe</text>
+        </g>
+
+        <g class="region-highlight" id="rh-temporal">
+          <path class="rh-fill" fill="#6BCB77" d="M600,845s-31,49,2,85,63,45,63,45c0,0,69,40,121,35,30,5,40,22,108,6s180-73,180-73c0,0,84-127,134-157s133,8,140,11-42-94-16-152-147-112-147-112c0,0-144-17-249,99s-184,79-336,213Z"/>
+          <path class="rh-stroke" stroke="#6BCB77" filter="url(#shape-glow)" d="M600,845s-31,49,2,85,63,45,63,45c0,0,69,40,121,35,30,5,40,22,108,6s180-73,180-73c0,0,84-127,134-157s133,8,140,11-42-94-16-152-147-112-147-112c0,0-144-17-249,99s-184,79-336,213Z"/>
+          <text class="region-label-svg" x="860" y="770" fill="#6BCB77">Temporal Lobe</text>
+        </g>
+
+        <g class="region-highlight" id="rh-occipital">
+          <path class="rh-fill" fill="#4D96FF" d="M1581,416c-64.16-31.45,2,84-17,104s-48,46-97,17c0,0-45,78-60,90,0,0,3,23-26,53s-12,43-12,43c0,0-6,34,10,37,7,25-6,45,41,55s69,40,78,46,35,63,37,71,16,29,43,28,91-31,119-113c15-67-1-110-1-110,0,0,22-95-16-141-10-66-41-81-41-81,0,0-7-74-58-99Z"/>
+          <path class="rh-stroke" stroke="#4D96FF" filter="url(#shape-glow)" d="M1581,416c-64.16-31.45,2,84-17,104s-48,46-97,17c0,0-45,78-60,90,0,0,3,23-26,53s-12,43-12,43c0,0-6,34,10,37,7,25-6,45,41,55s69,40,78,46,35,63,37,71,16,29,43,28,91-31,119-113c15-67-1-110-1-110,0,0,22-95-16-141-10-66-41-81-41-81,0,0-7-74-58-99Z"/>
+          <text class="region-label-svg" x="1520" y="560" fill="#4D96FF">Occipital Lobe</text>
+        </g>
+
+        <g class="region-highlight" id="rh-cerebellum">
+          <path class="rh-fill" fill="#FF922B" d="M1266,772s43-2,75,24,71,54,98,59,81,60,86,65,50,49,38,97-51,106-77,115-56,43-159,27c-75,57-135-3-135-3,0,0-28-29-28-42s-33-28-33-44c-27-8-33-27-33-27,0,0-2-12,11.16-42.58-9.81-9.64-17.78-23.79-18.16-44.42-1-55,36-92,65-116s30-71,110-68Z"/>
+          <path class="rh-stroke" stroke="#FF922B" filter="url(#shape-glow)" d="M1266,772s43-2,75,24,71,54,98,59,81,60,86,65,50,49,38,97-51,106-77,115-56,43-159,27c-75,57-135-3-135-3,0,0-28-29-28-42s-33-28-33-44c-27-8-33-27-33-27,0,0-2-12,11.16-42.58-9.81-9.64-17.78-23.79-18.16-44.42-1-55,36-92,65-116s30-71,110-68Z"/>
+          <text class="region-label-svg" x="1270" y="895" fill="#FF922B">Cerebellum</text>
+        </g>
+
+        <g class="region-highlight" id="rh-brainstem">
+          <path class="rh-fill" fill="#CC5DE8" d="M920,878s-7,22,2,27,24,17,24,17c0,0-4,12,3,28-5,18-10,36,12,64,17,35,25,45,59,72s12,16,12,16c0,0,8,48,51,89,33,34,76,166,76,166,0,0,3,7,36,7s51-26,51-26l-43-175-82-219s58-49,62-88,82-85,32-140-295,162-295,162Z"/>
+          <path class="rh-stroke" stroke="#CC5DE8" filter="url(#shape-glow)" d="M920,878s-7,22,2,27,24,17,24,17c0,0-4,12,3,28-5,18-10,36,12,64,17,35,25,45,59,72s12,16,12,16c0,0,8,48,51,89,33,34,76,166,76,166,0,0,3,7,36,7s51-26,51-26l-43-175-82-219s58-49,62-88,82-85,32-140-295,162-295,162Z"/>
+          <text class="region-label-svg" x="980" y="1020" fill="#CC5DE8">Brainstem</text>
+        </g>
+
+        <g class="region-highlight" id="rh-thalamus">
+          <path class="rh-fill" fill="#20C997" d="M814,681s-27-61,85-79,73-18,124-38,82-41,117-13,67,148-28,169-127,39-169,30l-42-9s-101-37-92-62"/>
+          <path class="rh-stroke" stroke="#20C997" filter="url(#shape-glow)" d="M814,681s-27-61,85-79,73-18,124-38,82-41,117-13,67,148-28,169-127,39-169,30l-42-9s-101-37-92-62"/>
+          <text class="region-label-svg" x="1010" y="705" fill="#20C997">Thalamus</text>
+        </g>
+
+        <g class="region-highlight" id="rh-hypothalamus">
+          <path class="rh-fill" fill="#F06595" d="M761,630s8,35,24,55,9,55-1,71,21,17,31-34,2-84,13-100,3-36-33-30-34,38-34,38Z"/>
+          <path class="rh-stroke" stroke="#F06595" filter="url(#shape-glow)" d="M761,630s8,35,24,55,9,55-1,71,21,17,31-34,2-84,13-100,3-36-33-30-34,38-34,38Z"/>
+          <text class="region-label-svg" x="785" y="660" font-size="28" fill="#F06595">Hypothalamus</text>
+        </g>
+
+        <g class="region-highlight" id="rh-hippocampus">
+          <path class="rh-fill" fill="#74C0FC" d="M1022,793s12-23,72-26c34.32-1.72,47-38,87-64s19-88,19-88c0,0-44-59-67-62s45-22,61-6,52,61,48,107-56,102-73,109-27,22-29,28-15,22-43,24c-26.24,1.87-33,10-33,10,0,0-31,36-42,6s0-38,0-38Z"/>
+          <path class="rh-stroke" stroke="#74C0FC" filter="url(#shape-glow)" d="M1022,793s12-23,72-26c34.32-1.72,47-38,87-64s19-88,19-88c0,0-44-59-67-62s45-22,61-6,52,61,48,107-56,102-73,109-27,22-29,28-15,22-43,24c-26.24,1.87-33,10-33,10,0,0-31,36-42,6s0-38,0-38Z"/>
+          <text class="region-label-svg" x="1100" y="775" font-size="28" fill="#74C0FC">Hippocampus</text>
+        </g>
+
+        <g class="region-highlight" id="rh-amygdala">
+          <path class="rh-fill" fill="#FF6B35" d="M1016,785s-19-22-51-1-43,35-17,74c37,17,72-13,73-31s6-21-5-42Z"/>
+          <path class="rh-stroke" stroke="#FF6B35" filter="url(#shape-glow)" d="M1016,785s-19-22-51-1-43,35-17,74c37,17,72-13,73-31s6-21-5-42Z"/>
+          <text class="region-label-svg" x="990" y="845" font-size="28" fill="#FF6B35">Amygdala</text>
+        </g>
+
+        <!-- ══ HOTSPOT DOTS — centred on each anatomical region ══ -->
+
+        <g class="hotspot" id="hs-prefrontal" data-region="prefrontal" onclick="pick('prefrontal')">
+          <circle class="hotspot-pulse" cx="390" cy="620" r="36" stroke="#FF9500"/>
+          <circle class="hotspot-pulse" cx="390" cy="620" r="36" stroke="#FF9500"/>
+          <circle class="hotspot-halo"  cx="390" cy="620" r="54" stroke="#FF9500" stroke-width="3"/>
+          <circle class="hotspot-ring"  cx="390" cy="620" r="50" stroke="#FF9500" stroke-dasharray="16 8"/>
+          <circle class="hotspot-core"  cx="390" cy="620" r="36" fill="#FF9500" stroke="white" stroke-width="5" style="filter:drop-shadow(0 0 14px #FF9500) drop-shadow(0 0 28px #FF950066)"/>
+          <circle class="visited-dot"   cx="420" cy="590" r="11"/>
+        </g>
+
+        <g class="hotspot" id="hs-frontal" data-region="frontal" onclick="pick('frontal')">
+          <circle class="hotspot-pulse" cx="720" cy="490" r="38" stroke="#FF6B6B"/>
+          <circle class="hotspot-pulse" cx="720" cy="490" r="38" stroke="#FF6B6B"/>
+          <circle class="hotspot-halo"  cx="720" cy="490" r="56" stroke="#FF6B6B" stroke-width="3"/>
+          <circle class="hotspot-ring"  cx="720" cy="490" r="52" stroke="#FF6B6B" stroke-dasharray="16 8"/>
+          <circle class="hotspot-core"  cx="720" cy="490" r="38" fill="#FF6B6B" stroke="white" stroke-width="5" style="filter:drop-shadow(0 0 14px #FF6B6B) drop-shadow(0 0 28px #FF6B6B66)"/>
+          <circle class="visited-dot"   cx="752" cy="458" r="11"/>
+        </g>
+
+        <g class="hotspot" id="hs-parietal" data-region="parietal" onclick="pick('parietal')">
+          <circle class="hotspot-pulse" cx="1120" cy="310" r="36" stroke="#FFD93D"/>
+          <circle class="hotspot-pulse" cx="1120" cy="310" r="36" stroke="#FFD93D"/>
+          <circle class="hotspot-halo"  cx="1120" cy="310" r="54" stroke="#FFD93D" stroke-width="3"/>
+          <circle class="hotspot-ring"  cx="1120" cy="310" r="50" stroke="#FFD93D" stroke-dasharray="16 8"/>
+          <circle class="hotspot-core"  cx="1120" cy="310" r="36" fill="#FFD93D" stroke="white" stroke-width="5" style="filter:drop-shadow(0 0 14px #FFD93D) drop-shadow(0 0 28px #FFD93D66)"/>
+          <circle class="visited-dot"   cx="1150" cy="280" r="11"/>
+        </g>
+
+        <g class="hotspot" id="hs-temporal" data-region="temporal" onclick="pick('temporal')">
+          <circle class="hotspot-pulse" cx="860" cy="790" r="36" stroke="#6BCB77"/>
+          <circle class="hotspot-pulse" cx="860" cy="790" r="36" stroke="#6BCB77"/>
+          <circle class="hotspot-halo"  cx="860" cy="790" r="54" stroke="#6BCB77" stroke-width="3"/>
+          <circle class="hotspot-ring"  cx="860" cy="790" r="50" stroke="#6BCB77" stroke-dasharray="16 8"/>
+          <circle class="hotspot-core"  cx="860" cy="790" r="36" fill="#6BCB77" stroke="white" stroke-width="5" style="filter:drop-shadow(0 0 14px #6BCB77) drop-shadow(0 0 28px #6BCB7766)"/>
+          <circle class="visited-dot"   cx="890" cy="760" r="11"/>
+        </g>
+
+        <g class="hotspot" id="hs-occipital" data-region="occipital" onclick="pick('occipital')">
+          <circle class="hotspot-pulse" cx="1520" cy="580" r="36" stroke="#4D96FF"/>
+          <circle class="hotspot-pulse" cx="1520" cy="580" r="36" stroke="#4D96FF"/>
+          <circle class="hotspot-halo"  cx="1520" cy="580" r="54" stroke="#4D96FF" stroke-width="3"/>
+          <circle class="hotspot-ring"  cx="1520" cy="580" r="50" stroke="#4D96FF" stroke-dasharray="16 8"/>
+          <circle class="hotspot-core"  cx="1520" cy="580" r="36" fill="#4D96FF" stroke="white" stroke-width="5" style="filter:drop-shadow(0 0 14px #4D96FF) drop-shadow(0 0 28px #4D96FF66)"/>
+          <circle class="visited-dot"   cx="1550" cy="550" r="11"/>
+        </g>
+
+        <g class="hotspot" id="hs-cerebellum" data-region="cerebellum" onclick="pick('cerebellum')">
+          <circle class="hotspot-pulse" cx="1270" cy="910" r="36" stroke="#FF922B"/>
+          <circle class="hotspot-pulse" cx="1270" cy="910" r="36" stroke="#FF922B"/>
+          <circle class="hotspot-halo"  cx="1270" cy="910" r="54" stroke="#FF922B" stroke-width="3"/>
+          <circle class="hotspot-ring"  cx="1270" cy="910" r="50" stroke="#FF922B" stroke-dasharray="16 8"/>
+          <circle class="hotspot-core"  cx="1270" cy="910" r="36" fill="#FF922B" stroke="white" stroke-width="5" style="filter:drop-shadow(0 0 14px #FF922B) drop-shadow(0 0 28px #FF922B66)"/>
+          <circle class="visited-dot"   cx="1300" cy="880" r="11"/>
+        </g>
+
+        <g class="hotspot" id="hs-brainstem" data-region="brainstem" onclick="pick('brainstem')">
+          <circle class="hotspot-pulse" cx="980" cy="1040" r="36" stroke="#CC5DE8"/>
+          <circle class="hotspot-pulse" cx="980" cy="1040" r="36" stroke="#CC5DE8"/>
+          <circle class="hotspot-halo"  cx="980" cy="1040" r="54" stroke="#CC5DE8" stroke-width="3"/>
+          <circle class="hotspot-ring"  cx="980" cy="1040" r="50" stroke="#CC5DE8" stroke-dasharray="16 8"/>
+          <circle class="hotspot-core"  cx="980" cy="1040" r="36" fill="#CC5DE8" stroke="white" stroke-width="5" style="filter:drop-shadow(0 0 14px #CC5DE8) drop-shadow(0 0 28px #CC5DE866)"/>
+          <circle class="visited-dot"   cx="1010" cy="1010" r="11"/>
+        </g>
+
+        <g class="hotspot" id="hs-thalamus" data-region="thalamus" onclick="pick('thalamus')">
+          <circle class="hotspot-pulse" cx="1010" cy="720" r="28" stroke="#20C997"/>
+          <circle class="hotspot-pulse" cx="1010" cy="720" r="28" stroke="#20C997"/>
+          <circle class="hotspot-halo"  cx="1010" cy="720" r="44" stroke="#20C997" stroke-width="3"/>
+          <circle class="hotspot-ring"  cx="1010" cy="720" r="40" stroke="#20C997" stroke-dasharray="12 6"/>
+          <circle class="hotspot-core"  cx="1010" cy="720" r="28" fill="#20C997" stroke="white" stroke-width="4" style="filter:drop-shadow(0 0 12px #20C997) drop-shadow(0 0 22px #20C99766)"/>
+          <circle class="visited-dot"   cx="1036" cy="694" r="11"/>
+        </g>
+
+        <g class="hotspot" id="hs-hypothalamus" data-region="hypothalamus" onclick="pick('hypothalamus')">
+          <circle class="hotspot-pulse" cx="785" cy="685" r="26" stroke="#F06595"/>
+          <circle class="hotspot-pulse" cx="785" cy="685" r="26" stroke="#F06595"/>
+          <circle class="hotspot-halo"  cx="785" cy="685" r="40" stroke="#F06595" stroke-width="3"/>
+          <circle class="hotspot-ring"  cx="785" cy="685" r="36" stroke="#F06595" stroke-dasharray="10 5"/>
+          <circle class="hotspot-core"  cx="785" cy="685" r="26" fill="#F06595" stroke="white" stroke-width="4" style="filter:drop-shadow(0 0 12px #F06595) drop-shadow(0 0 22px #F0659566)"/>
+          <circle class="visited-dot"   cx="808" cy="661" r="11"/>
+        </g>
+
+        <g class="hotspot" id="hs-hippocampus" data-region="hippocampus" onclick="pick('hippocampus')">
+          <circle class="hotspot-pulse" cx="1100" cy="800" r="26" stroke="#74C0FC"/>
+          <circle class="hotspot-pulse" cx="1100" cy="800" r="26" stroke="#74C0FC"/>
+          <circle class="hotspot-halo"  cx="1100" cy="800" r="40" stroke="#74C0FC" stroke-width="3"/>
+          <circle class="hotspot-ring"  cx="1100" cy="800" r="36" stroke="#74C0FC" stroke-dasharray="10 5"/>
+          <circle class="hotspot-core"  cx="1100" cy="800" r="26" fill="#74C0FC" stroke="white" stroke-width="4" style="filter:drop-shadow(0 0 12px #74C0FC) drop-shadow(0 0 22px #74C0FC66)"/>
+          <circle class="visited-dot"   cx="1123" cy="776" r="11"/>
+        </g>
+
+        <g class="hotspot" id="hs-amygdala" data-region="amygdala" onclick="pick('amygdala')">
+          <circle class="hotspot-pulse" cx="990" cy="820" r="26" stroke="#FF6B35"/>
+          <circle class="hotspot-pulse" cx="990" cy="820" r="26" stroke="#FF6B35"/>
+          <circle class="hotspot-halo"  cx="990" cy="820" r="40" stroke="#FF6B35" stroke-width="3"/>
+          <circle class="hotspot-ring"  cx="990" cy="820" r="36" stroke="#FF6B35" stroke-dasharray="10 5"/>
+          <circle class="hotspot-core"  cx="990" cy="820" r="26" fill="#FF6B35" stroke="white" stroke-width="4" style="filter:drop-shadow(0 0 12px #FF6B35) drop-shadow(0 0 22px #FF6B3566)"/>
+          <circle class="visited-dot"   cx="1013" cy="796" r="11"/>
+        </g>
+
+      </svg>
+    </div>
+
+        <!-- Legend -->
+    <div class="legend-bar" id="legend-bar"></div>
+
+    <!-- Ticker -->
+    <div class="ticker">
+      <span class="ticker-inner">
+        NEUROSCAN ACTIVE &nbsp;•&nbsp; DR. EVIAN GORDON — THE BRAIN WAY &nbsp;•&nbsp;
+        MINIMIZE THREAT · MAXIMIZE REWARD &nbsp;•&nbsp; 86 BILLION NEURONS &nbsp;•&nbsp;
+        SYNAPTIC PLASTICITY ENGAGED &nbsp;•&nbsp; LIMBIC SYSTEM ONLINE &nbsp;•&nbsp;
+        PFC EXECUTIVE OVERRIDE READY &nbsp;•&nbsp; AMYGDALA MONITORING &nbsp;•&nbsp;
+        HIPPOCAMPAL ENCODING ACTIVE &nbsp;•&nbsp; CEREBELLAR TIMING CALIBRATED &nbsp;•&nbsp;
+        NEUROSCAN ACTIVE &nbsp;•&nbsp; DR. EVIAN GORDON — THE BRAIN WAY &nbsp;•&nbsp;
+        MINIMIZE THREAT · MAXIMIZE REWARD &nbsp;•&nbsp; 86 BILLION NEURONS &nbsp;•&nbsp;
+      </span>
+    </div>
+  </div>
+
+  <!-- Info Panel -->
+  <div class="info-panel" id="info-panel">
+    <div class="empty-st" id="empty-st">
+      <div class="empty-orb">🧠</div>
+      <h3>Ready to Scan</h3>
+      <p>Tap any glowing dot on the brain to activate that region's neural data.</p>
+      <span class="empty-cue">▶ tap a region to begin</span>
+    </div>
+
+    <div class="rgn-content" id="rgn-content">
+      <div class="panel-top">
+        <div class="panel-id">
+          <span class="panel-num" id="p-num">01/11</span>
+          <span class="panel-tag" id="p-tag">—</span>
+          <span class="panel-revisit" id="p-revisit">✓ revisiting</span>
+        </div>
+        <div class="panel-name" id="p-name">—</div>
+        <div class="panel-nick" id="p-nick">—</div>
+      </div>
+
+      <div class="tr-wrap">
+        <div class="tr-lbl">Threat ↔ Reward Spectrum — Dr. Gordon's Framework</div>
+        <div class="tr-track">
+          <div class="tr-left" id="tr-l"></div>
+          <div class="tr-right" id="tr-r"></div>
+          <div class="tr-pin" id="tr-pin"></div>
+        </div>
+        <div class="tr-ends"><span class="tr-t">⚡ Threat</span><span class="tr-r">Reward 🌿</span></div>
+      </div>
+
+      <div class="psec">
+        <div class="shdr">⬡ Function</div>
+        <div class="sbody" id="p-what"></div>
+        <div class="chips" id="p-chips"></div>
+      </div>
+
+      <div class="gordon">
+        <div class="gordon-hdr">The Brain Way — Dr. Evian Gordon</div>
+        <div class="gordon-body" id="p-gordon"></div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-hdr">▸ Real-life scenario</div>
+        <div class="scenario-body" id="p-scenario"></div>
+      </div>
+
+      <div class="quiz" id="p-quiz">
+        <div class="quiz-hdr" id="quiz-hdr">✦ Neural Check</div>
+        <div class="quiz-q" id="quiz-q"></div>
+        <div class="quiz-opts" id="quiz-opts"></div>
+        <div class="qfb" id="quiz-fb"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Completion -->
+<div class="comp-overlay" id="comp-overlay">
+  <div class="comp-card">
+    <span class="comp-icon">🏆</span>
+    <div class="comp-title">Neural Map <span>Complete</span></div>
+    <p class="comp-p">You've scanned all 11 brain regions. You now understand how each one shapes your thoughts, emotions, and decisions every single day.</p>
+    <div class="comp-slbl">Total Score</div>
+    <span class="comp-score" id="comp-score">000</span>
+    <span class="comp-max">out of 330 pts</span>
+    <div class="comp-quote">"The brain that understands itself can change itself." — Dr. Evian Gordon, The Brain Way</div>
+    <button class="restart-btn" onclick="restart()">Rescan Brain</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-pts" id="t-pts">+10</span>
+  <span id="t-msg">Region unlocked</span>
+</div>
+
+<script>
+const DATA = {
+  prefrontal: {
+    name:"Prefrontal Cortex", nick:'"The Wise Executive"', tag:"PFC", num:"01/11",
+    color:"#FF9500", threat:18,
+    facts:["🧠 Most evolved brain region","🕒 Fully matures ~age 25","🎯 Seat of willpower & self-control","⚡ Can override the amygdala"],
+    what:"The prefrontal cortex is the <strong>most recently evolved and distinctly human</strong> part of the brain — sitting just behind your forehead. It handles rational decision-making, impulse control, planning, empathy, and abstract thought. It is what allows you to pause before reacting.",
+    gordon:"This is the single most important region in Dr. Gordon's framework. The PFC is the brain's master regulator — the only structure capable of consciously overriding the amygdala's threat alarm. Gordon's entire approach to self-regulation is built on strengthening PFC-amygdala balance: understanding the threat response so the PFC can override it, rather than being hijacked by it.",
+    scenario:"You receive a stinging criticism in front of your peers. Your amygdala fires instantly — your face flushes, your heart races. But your PFC steps in: 'This is uncomfortable, but not dangerous. I can respond thoughtfully.' That 2-second pause before you speak? That is your prefrontal cortex saving you from yourself.",
+    quiz:{q:"Why does the prefrontal cortex struggle to override the amygdala under extreme stress?",
+      opts:["The PFC runs out of glucose during stress","Blood flow and resources shift away from the PFC to survival circuits, reducing rational capacity","The amygdala physically blocks PFC signals","The PFC only works during sleep"],
+      correct:1, fb:"Resources shift away from the PFC! Under high threat, the brain deprioritises slow, energy-expensive rational thought in favour of fast survival responses. This is why you make worse decisions when panicked, say things you regret when angry, and can't think clearly when terrified. Calming down first is not weakness — it is biology."}
+  },
+  frontal: {
+    name:"Frontal Lobe", nick:'"The Planner & Mover"', tag:"FRONTAL", num:"02/11",
+    color:"#FF6B6B", threat:38,
+    facts:["🏃 Controls all voluntary movement","💬 Produces speech (Broca's area)","🗂️ Working memory hub","🎭 Shapes personality"],
+    what:"The frontal lobe manages <strong>voluntary movement, speech production, working memory, and complex problem-solving</strong>. The motor cortex — which maps your entire body — lives here, sending precise signals to every muscle you consciously move.",
+    gordon:"Dr. Gordon highlights the frontal lobe as central to goal-directed behavior. It works with reward circuits to motivate purposeful action — making it the engine of the 'maximize reward' drive. When students feel genuinely motivated, this region is firing.",
+    scenario:"When you rehearse a presentation in your head, your frontal lobe is running motor simulations. This is why mental practice actually improves real performance — you're literally pre-wiring the neural firing patterns.",
+    quiz:{q:"What is the 'motor homunculus' in the frontal lobe?",
+      opts:["A tiny human neuron that controls the motor cortex","A body map showing how much motor cortex each body part gets","The region that produces speech","The area that stores motor memories"],
+      correct:1, fb:"A proportional body map! If drawn to scale, humans would have enormous hands and lips — because precise movement of these parts demands massive brain resources. Learning an instrument literally expands your hand maps."}
+  },
+  parietal: {
+    name:"Parietal Lobe", nick:'"The Body Map"', tag:"PARIETAL", num:"03/11",
+    color:"#FFD93D", threat:45,
+    facts:["🗺️ 3D spatial awareness","👋 Integrates touch & pain","🔢 Numerical sense","⬆️ Body position in space"],
+    what:"The parietal lobe integrates <strong>sensory data from your entire body</strong> — touch, temperature, pain, pressure, and spatial position. It answers the fundamental question: where is my body, and where am I in space?",
+    gordon:"Gordon emphasizes that the parietal lobe processes the physical sensations that accompany threat responses — the chest tightening, shoulder tension. Mindful body-scanning is powerful precisely because it recruits the parietal lobe to catch stress states before they escalate.",
+    scenario:"Catching a ball requires your parietal lobe to integrate visual speed, body position, hand location, and motor prediction — all in under 400 milliseconds. Damage here can cause people to completely ignore one entire half of their body.",
+    quiz:{q:"Which condition results from severe parietal lobe damage?",
+      opts:["Loss of vision in one eye","Hemispatial neglect — ignoring one entire side of the body and world","Inability to form new memories","Loss of the ability to speak"],
+      correct:1, fb:"Hemispatial neglect! People may only eat food on one side of their plate, shave only one side of their face, or draw only half a clock — all without realizing it. The parietal lobe literally constructs our awareness of spatial reality."}
+  },
+  temporal: {
+    name:"Temporal Lobe", nick:'"The Memory Keeper"', tag:"TEMPORAL", num:"04/11",
+    color:"#6BCB77", threat:50,
+    facts:["👂 Processes all sound & speech","🎵 Music recognition","👤 Identifies faces","🔐 Houses amygdala & hippocampus"],
+    what:"The temporal lobes process <strong>auditory information, language comprehension, face recognition, and long-term memory</strong>. They house two critical structures: the hippocampus (memory filing) and the amygdala (threat detection).",
+    gordon:"The temporal lobe is home to two stars of Dr. Gordon's threat-reward system. The hippocampus files memories tagged with emotional valence. The amygdala fires the instant alarm. Together they create the emotional memories that shape all future behavior.",
+    scenario:"A song from your childhood instantly floods you with vivid memories and emotions — your temporal lobe linking the sound to episodic memory and emotional networks simultaneously. This is the same mechanism behind music therapy.",
+    quiz:{q:"Wernicke's area, which processes language comprehension, lives in which lobe?",
+      opts:["Frontal lobe","Parietal lobe","Temporal lobe","Occipital lobe"],
+      correct:2, fb:"Temporal lobe! Wernicke's area processes the meaning of words you hear. Damage here causes Wernicke's aphasia — people speak fluently in grammatical sentences, but the words make no sense. They also can't understand what others say to them."}
+  },
+  occipital: {
+    name:"Occipital Lobe", nick:'"The Vision Machine"', tag:"OCCIPITAL", num:"05/11",
+    color:"#4D96FF", threat:30,
+    facts:["👁️ 30% of cortex is visual","🎨 Constructs color & depth","↔️ 'What' & 'where' streams","🧩 Fills in visual gaps actively"],
+    what:"The occipital lobe is your <strong>visual construction engine</strong>. It doesn't passively receive images — it actively builds your visual reality, using prior expectations as much as incoming light data from your eyes.",
+    gordon:"Dr. Gordon's key insight: we don't see the world as it is — we see our brain's best prediction of it. The occipital lobe is a prediction machine. This is why two people can witness the same event and perceive it completely differently based on their prior experience.",
+    scenario:"Optical illusions fool your occipital lobe because it's completing a 'best guess,' not raw reality. The viral dress debate — black & blue vs. white & gold — was literally two visual systems predicting different ambient light sources for the same image.",
+    quiz:{q:"When you vividly imagine a red apple with your eyes closed, which lobe activates?",
+      opts:["Frontal — imagination is a frontal function","Parietal — it integrates all senses","Occipital — visual imagery uses the visual cortex","Temporal — it's purely a memory retrieval task"],
+      correct:2, fb:"Occipital lobe! Mental imagery activates the same visual cortex as actual seeing — just driven by internal signals instead of external light. This is the biological mechanism that makes visualization training genuinely effective for athletes and performers."}
+  },
+  cerebellum: {
+    name:"Cerebellum", nick:'"The Silent Conductor"', tag:"CEREBELLUM", num:"06/11",
+    color:"#FF922B", threat:60,
+    facts:["⚡ Over 80 billion neurons","🎼 Mastery of timing & rhythm","🤸 Balance & coordination","🔄 Automates learned skills"],
+    what:"The cerebellum ('little brain') packs <strong>more than half of all your brain's neurons</strong> into its heavily folded surface. It fine-tunes movement to sub-millisecond precision, maintains balance, and converts conscious skills into automatic programs.",
+    gordon:"Dr. Gordon identifies the cerebellum as the engine of automaticity — the neural basis of habit. Rehearse a behavior enough times and the cerebellum takes over, running it below conscious awareness. This is why rewiring habits is hard: you're overwriting deeply embedded cerebellar programs.",
+    scenario:"A professional pianist's fingers find the right notes without thought — that's a cached cerebellar program. When you first drove a car it was exhausting (heavy PFC). Now you drive while having a full conversation — the cerebellum has taken the wheel.",
+    quiz:{q:"What happens neurologically when a skill becomes truly automatic through practice?",
+      opts:["The prefrontal cortex grows more connections","Processing transfers from the prefrontal cortex to the cerebellum","The hippocampus deletes the original learning memory to free space","The amygdala stops monitoring for threats during that task"],
+      correct:1, fb:"It transfers to the cerebellum! This frees up your PFC for higher-level thinking. Practice literally changes where your brain processes information — from conscious, effortful cortex to the automatic, below-awareness cerebellum. That's what expertise feels like."}
+  },
+  brainstem: {
+    name:"Brainstem", nick:'"The Survival Engine"', tag:"BRAINSTEM", num:"07/11",
+    color:"#CC5DE8", threat:3,
+    facts:["❤️ Runs your heartbeat 24/7","🫁 Controls all breathing","😴 Governs sleep-wake cycles","⚡ Operates fully below consciousness"],
+    what:"The brainstem is your most ancient brain structure — shared with every vertebrate alive. It controls <strong>every automatic life function</strong>: heart rate, breathing, blood pressure, swallowing, and survival reflexes. You cannot consciously override it.",
+    gordon:"The brainstem represents the deepest layer of Gordon's threat-response system. When perceived threat becomes existential, the brainstem can trigger a complete freeze response — 'paralyzed with fear.' This is not weakness; it's an ancient survival circuit that predates conscious thought by hundreds of millions of years.",
+    scenario:"A sudden loud crash behind you — you spin and flinch before consciously processing the sound. That's your brainstem's startle reflex operating roughly 20x faster than conscious awareness, keeping you alive before your 'thinking' brain has even registered what happened.",
+    quiz:{q:"The fight-flight-freeze response — where does it originate?",
+      opts:["Prefrontal cortex — it's a rational threat calculation","Limbic system and brainstem working together","Cerebellum — freeze is an automatic motor response","Parietal lobe — it detects physical danger"],
+      correct:1, fb:"Limbic system and brainstem together! The amygdala detects threat and immediately signals the brainstem to flood the body with adrenaline. Your prefrontal cortex doesn't even find out until after the response has already launched — which is why you startle before you 'decide' to."}
+  },
+  thalamus: {
+    name:"Thalamus", nick:'"The Grand Relay Station"', tag:"THALAMUS", num:"08/11",
+    color:"#20C997", threat:42,
+    facts:["📡 Relays all sensory signals","🚦 Brain's central switchboard","💤 Regulates consciousness & sleep","🎛️ Filters what reaches awareness"],
+    what:"The thalamus is your brain's <strong>central relay station</strong> — nearly every sensory signal (except smell) passes through here before reaching the cortex. It acts as a gatekeeper, deciding which incoming signals deserve the cortex's attention and which to filter out.",
+    gordon:"In Gordon's framework, the thalamus plays a crucial routing role in the threat-detection circuit. It receives sensory data and splits it: a fast route goes directly to the amygdala for instant threat screening, while a slower route goes to the cortex for full analysis. Your body can react to danger before you consciously see it.",
+    scenario:"You're concentrating deeply on studying and don't hear your name called the first time — your thalamus is suppressing irrelevant sensory signals to protect your focus. When you finally hear it, the thalamus has decided it's relevant enough to let through.",
+    quiz:{q:"Which sensory signal bypasses the thalamus and goes directly to the brain?",
+      opts:["Vision — it's too important to delay","Hearing — the ears connect directly to the cortex","Touch — pain signals go straight to consciousness","Smell — olfactory signals bypass the thalamus entirely"],
+      correct:3, fb:"Smell! Olfactory signals are the only sensory input that bypasses the thalamic relay and connects directly to the limbic system — which is why smells trigger emotions and memories so powerfully and instantly. Every other sense goes through the thalamus first."}
+  },
+  hypothalamus: {
+    name:"Hypothalamus", nick:'"The Body\'s Thermostat"', tag:"HYPOTHAL.", num:"09/11",
+    color:"#F06595", threat:18,
+    facts:["🌡️ Regulates body temperature","🍽️ Controls hunger & thirst","💊 Master hormone controller","😴 Manages circadian rhythms"],
+    what:"The hypothalamus is your brain's <strong>internal environment controller</strong> — despite being the size of an almond, it governs hunger, thirst, temperature, sleep cycles, hormone release, and the physical components of emotion. It's the bridge between brain and body.",
+    gordon:"Dr. Gordon emphasizes the hypothalamus as the biological engine of the stress response. When the threat system activates, the hypothalamus triggers the HPA axis — releasing cortisol and adrenaline. Chronic stress literally keeps this system running hot, damaging health over time.",
+    scenario:"You're nervously waiting for exam results. Your dry mouth, racing heart, and knotted stomach are all your hypothalamus responding to perceived threat — triggering the same physiological cascade it would for physical danger, even though nothing physical is happening.",
+    quiz:{q:"The hypothalamus activates the HPA axis during stress. What does HPA stand for?",
+      opts:["Hippocampal-Prefrontal-Amygdala axis","Hypothalamic-Pituitary-Adrenal axis","Hormonal-Physical-Autonomic axis","Hyper-Prefrontal Activation system"],
+      correct:1, fb:"Hypothalamic-Pituitary-Adrenal axis! The hypothalamus signals the pituitary gland, which signals the adrenal glands to release cortisol. This cascade takes 20–30 minutes to fully activate — and roughly the same to calm down — which is why stress lingers long after the trigger is gone."}
+  },
+  hippocampus: {
+    name:"Hippocampus", nick:'"The Memory Librarian"', tag:"HIPPOCAM.", num:"10/11",
+    color:"#74C0FC", threat:55,
+    facts:["💾 Forms all new long-term memories","🗺️ Spatial navigation & mental maps","🔄 Transfers memories during sleep","📉 Shrinks with chronic stress"],
+    what:"The hippocampus (shaped like a seahorse) is your brain's <strong>memory filing system</strong> — converting short-term experiences into long-term memories. It also creates cognitive maps for spatial navigation and is one of the only brain regions that generates new neurons throughout life.",
+    gordon:"In Gordon's model, the hippocampus is the autobiographical record of every threat and reward experience you've had. It tags memories with emotional context — which is why stressful events create vivid memories while boring ones fade. Chronic cortisol from sustained threat actually shrinks the hippocampus, impairing memory.",
+    scenario:"The reason you can remember exactly where you were when something shocking happened — but not what you had for lunch last Tuesday — is your hippocampus prioritizing emotionally charged memories. Strong emotion is the signal it uses to decide what's worth keeping.",
+    quiz:{q:"Which remarkable ability does the hippocampus retain throughout adult life?",
+      opts:["The ability to rewire existing long-term memories","Neurogenesis — generating brand new neurons","The ability to process visual information","Direct control over emotional responses"],
+      correct:1, fb:"Neurogenesis! The hippocampus is one of the very few brain regions that generates new neurons in adulthood — a process called adult neurogenesis. Exercise, learning, and low-stress environments promote it. Chronic stress suppresses it. This is the biological basis for why lifestyle matters for memory."}
+  },
+  amygdala: {
+    name:"Amygdala", nick:'"The Threat Alarm"', tag:"AMYGDALA", num:"11/11",
+    color:"#FF6B35", threat:5,
+    facts:["⚡ Fires in milliseconds","😨 Triggers fear & anxiety responses","🔐 Creates emotional memories","👁️ Active even during sleep"],
+    what:"The amygdala (almond-shaped, one in each hemisphere) is your brain's <strong>instant threat-detection system</strong>. It processes emotional stimuli — especially fear and threat — with extraordinary speed, triggering survival responses before your conscious mind has registered anything.",
+    gordon:"This is the single most important structure in Dr. Gordon's entire framework. The amygdala is the biological implementation of the 'minimize threat' directive. It fires so fast that your body is already responding to a threat before your PFC knows what's happening. Gordon's work focuses on understanding and regulating this system rather than trying to suppress it.",
+    scenario:"You recoil from a stick on the path before realizing it's not a snake. Your amygdala processed the visual signal and triggered a startle response in about 12 milliseconds — your visual cortex needs 250ms to fully process the image. By the time you 'see' it, your body has already reacted.",
+    quiz:{q:"According to Dr. Gordon, why is the amygdala so central to human behavior?",
+      opts:["It stores all long-term memories","It implements the brain's prime directive — minimize threat — faster than conscious thought","It controls all voluntary movement","It regulates the release of dopamine"],
+      correct:1, fb:"It implements the threat-minimization directive at lightning speed! Because the amygdala acts before the PFC can deliberate, it shapes our reactions, decisions, and relationships in ways we're often not aware of. Gordon's insight is that understanding this — not fighting it — is the path to better self-regulation."}
+  }
+};
+
+const ORDER = ['prefrontal','frontal','parietal','temporal','occipital','cerebellum','brainstem','thalamus','hypothalamus','hippocampus','amygdala'];
+let score=0, visited=new Set(), answered=new Set(), current=null, toastTmr;
+
+function init(){
+  buildLegend();
+  // stagger hotspot idle animations
+  ORDER.forEach((k,i)=>{
+    const cores = document.querySelectorAll(`#hs-${k} .hotspot-core`);
+    cores.forEach(c=>{ c.style.animationDelay=`${i*0.35}s`; });
+  });
+}
+
+function buildLegend(){
+  const bar = document.getElementById('legend-bar');
+  ORDER.forEach(k=>{
+    const d = DATA[k];
+    const el = document.createElement('div');
+    el.className='leg'; el.id=`lg-${k}`;
+    el.style.color=d.color;
+    el.innerHTML=`<span class="leg-dot" style="background:${d.color};box-shadow:0 0 4px ${d.color}"></span>${d.tag}`;
+    el.onclick=()=>pick(k);
+    bar.appendChild(el);
+  });
+}
+
+function pick(key){
+  const d = DATA[key];
+
+  // Deactivate prev
+  if(current){
+    document.getElementById(`hs-${current}`)?.classList.remove('active');
+    document.getElementById(`rh-${current}`)?.classList.remove('show');
+    const pl=document.getElementById(`lg-${current}`);
+    if(pl){pl.classList.remove('leg-active');pl.style.borderColor='';pl.style.boxShadow='';}
+  }
+
+  current=key;
+
+  // Activate hotspot dot
+  const hs = document.getElementById(`hs-${key}`);
+  if(hs) hs.classList.add('active');
+
+  // Show region highlight shape
+  const rh = document.getElementById(`rh-${key}`);
+  if(rh) rh.classList.add('show');
+
+  // Legend
+  document.querySelectorAll('.leg').forEach(l=>{l.style.opacity='0.45';l.classList.remove('leg-active');});
+  const lg=document.getElementById(`lg-${key}`);
+  if(lg){lg.style.opacity='1';lg.classList.add('leg-active');lg.style.borderColor=d.color;lg.style.boxShadow=`0 0 6px ${d.color}50`;}
+
+  // Track visit
+  const isNew=!visited.has(key);
+  visited.add(key);
+  document.getElementById(`hs-${key}`)?.classList.add('visited');
+  document.getElementById(`lg-${key}`)?.classList.add('leg-visited');
+
+  if(isNew){score+=10;updateHUD();toast('+10 pts',`Unlocked: ${d.name}`);}
+
+  renderPanel(key,d,!isNew);
+
+  document.getElementById('empty-st').style.display='none';
+  document.getElementById('rgn-content').style.display='block';
+}
+
+function renderPanel(key,d,isRevisit){
+  // re-trigger animations
+  const rc=document.getElementById('rgn-content');
+  rc.style.display='none'; void rc.offsetHeight; rc.style.display='block';
+
+  document.documentElement.style.setProperty('--rc', d.color);
+
+  document.getElementById('p-num').textContent=d.num;
+  const tag=document.getElementById('p-tag');
+  tag.textContent=d.tag; tag.style.color=d.color; tag.style.borderColor=d.color;
+  tag.style.boxShadow=`0 0 6px ${d.color}40`;
+
+  const rev=document.getElementById('p-revisit');
+  rev.className='panel-revisit'+(isRevisit?' show':'');
+
+  const pname=document.getElementById('p-name');
+  pname.textContent=d.name; pname.style.color=d.color;
+  pname.style.textShadow=`0 0 18px ${d.color}55`;
+  document.getElementById('p-nick').textContent=d.nick;
+
+  // T/R meter
+  const t=d.threat;
+  document.getElementById('tr-l').style.width=((50-t/2))+'%';
+  document.getElementById('tr-r').style.width=(t/2)+'%';
+  document.getElementById('tr-pin').style.left=t+'%';
+
+  // Content
+  document.getElementById('p-what').innerHTML=d.what;
+
+  const chips=document.getElementById('p-chips');
+  chips.innerHTML='';
+  d.facts.forEach((f,i)=>{
+    const c=document.createElement('div');
+    c.className='chip';
+    c.style.animationDelay=`${i*0.07}s`;
+    c.style.borderColor=`${d.color}35`;
+    c.style.color=d.color;
+    c.textContent=f;
+    chips.appendChild(c);
+  });
+
+  document.getElementById('p-gordon').textContent=d.gordon;
+  document.getElementById('p-scenario').textContent=d.scenario;
+
+  // Quiz styling
+  const qbox=document.getElementById('p-quiz');
+  qbox.style.borderColor=`${d.color}40`;
+  qbox.style.background=`${d.color}06`;
+  document.getElementById('quiz-hdr').style.color=d.color;
+
+  renderQuiz(key,d);
+  document.getElementById('info-panel').scrollTop=0;
+}
+
+function renderQuiz(key,d){
+  const q=d.quiz;
+  document.getElementById('quiz-q').textContent=q.q;
+  const done=answered.has(key);
+  const opts=document.getElementById('quiz-opts');
+  opts.innerHTML='';
+  const fb=document.getElementById('quiz-fb');
+  fb.className='qfb'; fb.innerHTML='';
+
+  q.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='qopt'; btn.textContent=o; btn.disabled=done;
+    if(done && i===q.correct) btn.classList.add('correct');
+    btn.onclick=()=>answer(key,i,d);
+    opts.appendChild(btn);
+  });
+
+  if(done){
+    fb.classList.add('show','ok');
+    fb.innerHTML=`<span class="pts">✓ Already answered</span>${q.fb}`;
+  }
+}
+
+function answer(key,idx,d){
+  if(answered.has(key)) return;
+  answered.add(key);
+  const btns=document.querySelectorAll('.qopt');
+  btns.forEach(b=>b.disabled=true);
+  btns[d.quiz.correct].classList.add('correct');
+  const fb=document.getElementById('quiz-fb');
+  const ok=idx===d.quiz.correct;
+  if(ok){
+    btns[idx].classList.add('correct');
+    score+=20; updateHUD();
+    fb.className='qfb show ok';
+    fb.innerHTML=`<span class="pts">+20 PTS ✓</span>${d.quiz.fb}`;
+    toast('+20 pts','Correct!');
+  } else {
+    btns[idx].classList.add('incorrect');
+    fb.className='qfb show no';
+    fb.innerHTML=`<span style="color:#FF9090;font-weight:500;margin-right:5px;">✗ Not quite —</span>${d.quiz.fb}`;
+    toast('Read the insight','Keep exploring');
+  }
+  if(visited.size===11 && answered.size===11) setTimeout(showComp,1400);
+}
+
+function updateHUD(){
+  document.getElementById('hud-score').textContent=String(score).padStart(3,'0');
+  document.getElementById('hud-exp').innerHTML=`${visited.size}<span style="font-size:11px;opacity:0.4">/11</span>`;
+  const pct=Math.round((visited.size/11)*100);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'%';
+}
+
+function toast(pts,msg){
+  document.getElementById('t-pts').textContent=pts;
+  document.getElementById('t-msg').textContent=msg;
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function showComp(){
+  document.getElementById('comp-score').textContent=String(score).padStart(3,'0');
+  document.getElementById('comp-overlay').classList.add('show');
+}
+
+function restart(){
+  score=0;visited=new Set();answered=new Set();current=null;
+  updateHUD();
+  document.getElementById('comp-overlay').classList.remove('show');
+  document.getElementById('empty-st').style.display='flex';
+  document.getElementById('rgn-content').style.display='none';
+  document.querySelectorAll('.hotspot').forEach(h=>{ h.classList.remove('active','visited'); h.style.filter=''; });
+  document.querySelectorAll('.region-highlight').forEach(r=>r.classList.remove('show'));
+  document.querySelectorAll('.leg').forEach(l=>{ l.className='leg'; l.style.opacity='1'; l.style.borderColor=''; l.style.boxShadow=''; l.style.color=DATA[l.id.replace('lg-','')].color; });
+}
+
+init();
+</script>
+</body>
+</html>
