@@ -1,0 +1,53 @@
+html, body {
+  background-color: #020617;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-rise {
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideInFwd {
+  from { opacity: 0; transform: translateX(28px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in-fwd {
+  animation: slideInFwd 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideInBack {
+  from { opacity: 0; transform: translateX(-28px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in-back {
+  animation: slideInBack 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -24px) scale(1.08); }
+}
+.animate-float-slow {
+  animation: floatSlow 14s ease-in-out infinite;
+}
+
+@keyframes floatSlower {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-26px, 18px) scale(1.05); }
+}
+.animate-float-slower {
+  animation: floatSlower 19s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise, .animate-slide-in-fwd, .animate-slide-in-back, .animate-float-slow, .animate-float-slower {
+    animation: none !important;
+  }
+}
