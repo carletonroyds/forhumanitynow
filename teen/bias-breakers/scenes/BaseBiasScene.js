@@ -9,294 +9,234 @@ export class BaseBiasScene extends Phaser.Scene {
     }
 
     init(data) {
-        this.score = data.score || 0;
+        this.startScore = data.score || 0;
+        this.score = this.startScore;
         this.biasIndex = BiasData.findIndex(b => b.id === this.sceneKey);
         this.bias = BiasData[this.biasIndex];
         this.selected = false;
     }
 
-    create() {
-        this.cameras.main.fadeIn(500, 0, 0, 0);
-        this.drawScene();
-        this.scale.on('resize', () => this.drawScene());
+    // Used by the global resize handler so a mid-question resize
+    // restarts the question without double-counting the score.
+    getRestartData() {
+        return { score: this.startScore };
     }
 
-    drawScene() {
-        this.children.removeAll(true);
-        this.currentOptionBtns = [];
+    create() {
+        const width = this.scale.gameSize.width;
+        const height = this.scale.gameSize.height;
+        const isPortrait = height > width;
+        // Design unit: 1 at the reference size, scales with the shorter axis
+        const u = isPortrait ? width / 1080 : height / 1080;
+        const cx = width / 2;
 
-        const { width, height } = this.scale;
-        const isDesktop = width >= 900;
-        const isMid     = width >= 600;
+        this.cameras.main.fadeIn(400, 0, 0, 0);
 
-        const biasSz   = isDesktop ? 38 : isMid ? 28 : 21;
-        const descSz   = isDesktop ? 20 : isMid ? 16 : 13;
-        const instrSz  = isDesktop ? 17 : isMid ? 14 : 12;
-        const qSz      = isDesktop ? 26 : isMid ? 20 : 16;
-        const btnSz    = isDesktop ? 20 : isMid ? 16 : 13;
-        const hudSz    = isDesktop ? 14 : 12;
-        const pad      = isDesktop ? 44 : isMid ? 32 : 22;
-        const gapSm    = isDesktop ? 12 : 8;
-        const gapMd    = isDesktop ? 20 : 14;
+        // Background — cover the whole screen without distortion
+        const bg = this.add.image(cx, height / 2, this.bias.bg);
+        bg.setScale(Math.max(width / bg.width, height / bg.height));
 
-        const cardW = isDesktop ? Math.min(820, width * 0.86) : width * 0.95;
-        const cw    = cardW - pad * 2;
-        const btnW  = cw;
-        const minBtnH = isDesktop ? 64 : isMid ? 56 : 48;
-
-        // ── Full-bleed background ────────────────────────────────────────────
-        const bgImg = this.add.image(width / 2, height / 2, this.bias.bg)
-            .setDisplaySize(width, height);
-
+        // Dark overlay for readability
         const overlay = this.add.graphics();
-        overlay.fillStyle(0x000000, 0.50);
+        overlay.fillStyle(0x000000, 0.72);
         overlay.fillRect(0, 0, width, height);
 
-        // ── Card contents ─────────────────────────────────────────────────────
-        let y = pad;
+        // All UI lives in one container so it can be scaled down
+        // as a whole if it ever overflows the screen.
+        const ui = this.add.container(0, 0);
+        this.ui = ui;
 
-        // Progress row
+        const contentW = Math.min(width * 0.92, 1500 * u);
+        let y = 36 * u;
+
+        // ----- Progress bar -----
+        const pbWidth = Math.min(width * 0.86, 1000 * u);
+        const pbHeight = 16 * u;
         const progress = (this.biasIndex + 1) / BiasData.length;
-        const pbH = isDesktop ? 8 : 6;
 
         const pbBg = this.add.graphics();
         pbBg.fillStyle(0x333333, 1);
-        pbBg.fillRoundedRect(pad, y, cw, pbH, pbH / 2);
-
+        pbBg.fillRoundedRect(cx - pbWidth / 2, y, pbWidth, pbHeight, pbHeight / 2);
         const pbFill = this.add.graphics();
         pbFill.fillStyle(0x00ffff, 1);
-        pbFill.fillRoundedRect(pad, y, cw * progress, pbH, pbH / 2);
-        y += pbH + gapSm;
+        pbFill.fillRoundedRect(cx - pbWidth / 2, y, pbWidth * progress, pbHeight, pbHeight / 2);
+        ui.add([pbBg, pbFill]);
+        y += pbHeight + 18 * u;
 
-        const hudT = this.add.text(pad, y,
-            `${this.biasIndex + 1} / ${BiasData.length}`, {
+        const progressText = this.add.text(cx, y, `${this.biasIndex + 1} / ${BiasData.length}`, {
             fontFamily: 'Arial, sans-serif',
-            fontSize: `${hudSz}px`,
-            color: '#00ffff', fontStyle: 'bold'
-        }).setOrigin(0, 0);
-        y += hudT.displayHeight + gapMd;
+            fontSize: `${Math.round(30 * u)}px`,
+            color: '#00ffff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5, 0);
+        ui.add(progressText);
+        y += progressText.height + 28 * u;
 
-        // Divider
-        const div1 = this.add.graphics();
-        div1.lineStyle(1, 0x00ffff, 0.25);
-        div1.lineBetween(pad, y, cardW - pad, y);
-        y += gapMd;
-
-        // Bias title
-        const biasT = this.add.text(cardW / 2, y, this.bias.title.toUpperCase(), {
+        // ----- Bias title -----
+        const title = this.add.text(cx, y, this.bias.title.toUpperCase(), {
             fontFamily: 'Arial, sans-serif',
-            fontSize: `${biasSz}px`,
+            fontSize: `${Math.round(60 * u)}px`,
             color: '#ff00ff',
             fontStyle: 'bold',
             align: 'center',
             stroke: '#00ffff',
-            strokeThickness: isDesktop ? 2 : 1,
-            shadow: { blur: 12, color: '#ff00ff', fill: true },
-            wordWrap: { width: cw }
+            strokeThickness: 2,
+            shadow: { blur: 15, color: '#ff00ff', fill: true },
+            wordWrap: { width: contentW }
         }).setOrigin(0.5, 0);
-        y += biasT.displayHeight + gapSm;
+        ui.add(title);
+        y += title.height + 22 * u;
 
-        // Description
-        const descT = this.add.text(cardW / 2, y, this.bias.description, {
+        // ----- Bias description -----
+        const desc = this.add.text(cx, y, this.bias.description, {
             fontFamily: 'Arial, sans-serif',
-            fontSize: `${descSz}px`,
-            color: '#ccffff',
-            align: 'center',
-            wordWrap: { width: cw }
-        }).setOrigin(0.5, 0);
-        y += descT.displayHeight + gapSm;
-
-        // Instruction
-        const instrT = this.add.text(cardW / 2, y,
-            'Select the answer that demonstrates this bias', {
-            fontFamily: 'Arial, sans-serif',
-            fontSize: `${instrSz}px`,
-            color: '#ffd900',
-            fontStyle: 'italic',
-            align: 'center',
-            wordWrap: { width: cw }
-        }).setOrigin(0.5, 0);
-        y += instrT.displayHeight + gapMd;
-
-        // Divider
-        const div2 = this.add.graphics();
-        div2.lineStyle(1, 0x00ffff, 0.2);
-        div2.lineBetween(pad, y, cardW - pad, y);
-        y += gapMd;
-
-        // Question
-        const qT = this.add.text(cardW / 2, y, this.bias.question, {
-            fontFamily: 'Arial, sans-serif',
-            fontSize: `${qSz}px`,
+            fontSize: `${Math.round(34 * u)}px`,
             color: '#ffffff',
             fontStyle: 'bold',
             align: 'center',
-            wordWrap: { width: cw }
+            wordWrap: { width: contentW }
         }).setOrigin(0.5, 0);
-        y += qT.displayHeight + gapMd;
+        ui.add(desc);
+        y += desc.height + 30 * u;
 
-        // Answer buttons
+        // ----- Instruction (same size as the question) -----
+        const instruction = this.add.text(cx, y, 'Select the answer that demonstrates this bias', {
+            fontFamily: 'Arial, sans-serif',
+            fontSize: `${Math.round(44 * u)}px`,
+            color: '#ffe14d',
+            fontStyle: 'bold',
+            align: 'center',
+            wordWrap: { width: contentW }
+        }).setOrigin(0.5, 0);
+        ui.add(instruction);
+        y += instruction.height + 30 * u;
+
+        // ----- Divider -----
+        const divider = this.add.graphics();
+        divider.lineStyle(2 * u, 0x00ffff, 0.4);
+        divider.lineBetween(cx - contentW / 2, y, cx + contentW / 2, y);
+        ui.add(divider);
+        y += 38 * u;
+
+        // ----- Question -----
+        const question = this.add.text(cx, y, this.bias.question, {
+            fontFamily: 'Arial, sans-serif',
+            fontSize: `${Math.round(44 * u)}px`,
+            color: '#00ffff',
+            fontStyle: 'bold',
+            align: 'center',
+            wordWrap: { width: contentW }
+        }).setOrigin(0.5, 0);
+        ui.add(question);
+        y += question.height + 44 * u;
+
+        // ----- Answer buttons -----
         this.optionButtons = [];
+        const btnW = Math.min(width * 0.92, 1100 * u);
+        const btnGap = 28 * u;
+        const correctIndex = this.bias.biasedIndex;
+
         this.bias.options.forEach((option, index) => {
-            const label = this.add.text(0, 0, option, {
+            const btnText = this.add.text(0, 0, option, {
                 fontFamily: 'Arial, sans-serif',
-                fontSize: `${btnSz}px`,
+                fontSize: `${Math.round(34 * u)}px`,
                 color: '#ffffff',
                 align: 'center',
-                wordWrap: { width: btnW - 32 }
+                wordWrap: { width: btnW - 70 * u }
             }).setOrigin(0.5);
 
-            const bh = Math.max(minBtnH, label.displayHeight + 24);
-            const bg = this.add.graphics();
-            this.drawButton(bg, btnW, bh, 0x00ffff, 0.10);
+            const btnH = Math.max(104 * u, btnText.height + 44 * u);
+            const btnContainer = this.add.container(cx, y + btnH / 2);
+            const btnBg = this.add.graphics();
+            this.drawButton(btnBg, btnW, btnH, 0x00ffff, 0.12);
 
-            const btn = this.add.container(cardW / 2, y + bh / 2, [bg, label]);
-            btn.setInteractive(
-                new Phaser.Geom.Rectangle(-btnW / 2, -bh / 2, btnW, bh),
+            btnContainer.add([btnBg, btnText]);
+            btnContainer.setInteractive(
+                new Phaser.Geom.Rectangle(-btnW / 2, -btnH / 2, btnW, btnH),
                 Phaser.Geom.Rectangle.Contains
             );
-            btn.on('pointerover', () => {
-                if (!this.selected) {
-                    this.drawButton(bg, btnW, bh, 0xff00ff, 0.28);
-                    label.setColor('#00ffff');
-                    document.body.style.cursor = 'pointer';
-                }
-            });
-            btn.on('pointerout', () => {
-                if (!this.selected) {
-                    this.drawButton(bg, btnW, bh, 0x00ffff, 0.10);
-                    label.setColor('#ffffff');
-                    document.body.style.cursor = 'default';
-                }
-            });
-            btn.on('pointerdown', () => {
-                document.body.style.cursor = 'default';
-                this.handleAnswer(index, bg, label, this.bias.biasedIndex, btnW, bh);
+
+            btnContainer.on('pointerover', () => {
+                if (this.selected) return;
+                this.drawButton(btnBg, btnW, btnH, 0xff00ff, 0.3);
+                btnText.setColor('#00ffff');
             });
 
-            this.optionButtons.push({ container: btn, bg, text: label, w: btnW, h: bh });
-            y += bh + 10;
+            btnContainer.on('pointerout', () => {
+                if (this.selected) return;
+                this.drawButton(btnBg, btnW, btnH, 0x00ffff, 0.12);
+                btnText.setColor('#ffffff');
+            });
+
+            btnContainer.on('pointerdown', () => this.handleAnswer(index, correctIndex));
+
+            ui.add(btnContainer);
+            this.optionButtons.push({ container: btnContainer, bg: btnBg, text: btnText, w: btnW, h: btnH });
+            y += btnH + btnGap;
         });
 
-        y += 4;
-        const cardH = y + pad;
+        y += 8 * u;
 
-        const cardGfx = this.add.graphics();
-        cardGfx.fillStyle(0x020208, 0.72);
-        cardGfx.fillRoundedRect(0, 0, cardW, cardH, 14);
-        cardGfx.lineStyle(1, 0x00ffff, 0.45);
-        cardGfx.strokeRoundedRect(0, 0, cardW, cardH, 14);
-
-        const mc = this.add.container(0, 0, [
-            cardGfx, pbBg, pbFill, hudT, div1,
-            biasT, descT, instrT, div2, qT,
-            ...this.optionButtons.map(b => b.container)
-        ]);
-
-        // Reserve space below the card for the NEXT button
-        const btnReserve = isDesktop ? 90 : 74;
-        const maxH = height - btnReserve;
-        let cardScale = 1;
-        if (cardH > maxH) {
-            cardScale = maxH / cardH;
-            mc.setScale(cardScale);
-            mc.setPosition((width - cardW * cardScale) / 2, (height - cardH * cardScale - btnReserve) / 2);
-        } else {
-            mc.setPosition((width - cardW) / 2, (height - cardH - btnReserve) / 2);
+        // If the whole layout is taller than the screen (small landscape
+        // phones, long questions), scale everything down to fit.
+        if (y > height) {
+            const s = height / y;
+            ui.setScale(s);
+            ui.x = (width - width * s) / 2;
         }
-
-        this._cardCenterX = width / 2;
-        this._cardBottom  = mc.y + cardH * cardScale;
     }
 
     drawButton(graphics, w, h, color, alpha) {
         graphics.clear();
+        graphics.lineStyle(4, color, 1);
+        graphics.strokeRoundedRect(-w / 2, -h / 2, w, h, 15);
         graphics.fillStyle(color, alpha);
-        graphics.fillRoundedRect(-w / 2, -h / 2, w, h, 10);
-        graphics.lineStyle(2, color, 0.85);
-        graphics.strokeRoundedRect(-w / 2, -h / 2, w, h, 10);
+        graphics.fillRoundedRect(-w / 2, -h / 2, w, h, 15);
+        // Glow effect
+        graphics.lineStyle(8, color, 0.3);
+        graphics.strokeRoundedRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8, 20);
     }
 
-    handleAnswer(index, bg, text, correctIndex, btnW, btnH) {
+    handleAnswer(index, correctIndex) {
         if (this.selected) return;
         this.selected = true;
 
+        const btn = this.optionButtons[index];
         const isCorrect = index === correctIndex;
+
         if (isCorrect) {
             audioManager.playCorrect();
             this.score++;
-            this.drawButton(bg, btnW, btnH, 0x00ff88, 0.38);
-            text.setColor('#ffffff');
-            text.setText('✓ ' + text.text);
+            this.drawButton(btn.bg, btn.w, btn.h, 0x00ff00, 0.4);
+            btn.text.setColor('#ffffff');
+            btn.text.setText('✓ ' + btn.text.text);
         } else {
             audioManager.playIncorrect();
-            this.drawButton(bg, btnW, btnH, 0xff4444, 0.38);
-            text.setColor('#ffffff');
-            text.setText('✗ ' + text.text);
+            this.drawButton(btn.bg, btn.w, btn.h, 0xff0000, 0.4);
+            btn.text.setColor('#ffffff');
+            btn.text.setText('✗ ' + btn.text.text);
 
-            const correct = this.optionButtons[correctIndex];
-            this.drawButton(correct.bg, correct.w, correct.h, 0x00ff88, 0.38);
+            // Highlight the correct answer
+            const correctBtn = this.optionButtons[correctIndex];
+            this.drawButton(correctBtn.bg, correctBtn.w, correctBtn.h, 0x00ff00, 0.4);
 
+            // Track error - store title and description
             const errors = this.registry.get('ERRORS') || [];
             errors.push({ title: this.bias.title, description: this.bias.description });
             this.registry.set('ERRORS', errors);
         }
 
-        this.showNextButton();
+        // Auto-advance: brief pause on a correct answer, a little longer
+        // on a miss so the highlighted correct answer can be read.
+        this.time.delayedCall(isCorrect ? 1300 : 2600, () => this.goNext());
     }
 
-    showNextButton() {
-        const { width } = this.scale;
-        const isDesktop = width >= 900;
-        const btnW = isDesktop ? 200 : 160;
-        const btnH = isDesktop ? 56 : 48;
-        const btnSz = isDesktop ? 22 : 18;
-        const gap   = isDesktop ? 16 : 12;
-
-        const targetY = this._cardBottom + gap + btnH / 2;
-
-        const bg = this.add.graphics();
-        this.drawButton(bg, btnW, btnH, 0xff00ff, 0.20);
-        const label = this.add.text(0, 0, 'NEXT >>', {
-            fontFamily: 'Arial, sans-serif',
-            fontSize: `${btnSz}px`,
-            color: '#ffffff',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-
-        const btn = this.add.container(this._cardCenterX, targetY - 20, [bg, label]);
-        btn.setAlpha(0);
-        btn.setInteractive(
-            new Phaser.Geom.Rectangle(-btnW / 2, -btnH / 2, btnW, btnH),
-            Phaser.Geom.Rectangle.Contains
-        );
-        btn.on('pointerover', () => {
-            this.drawButton(bg, btnW, btnH, 0x00ffff, 0.45);
-            document.body.style.cursor = 'pointer';
-        });
-        btn.on('pointerout', () => {
-            this.drawButton(bg, btnW, btnH, 0xff00ff, 0.20);
-            document.body.style.cursor = 'default';
-        });
-        btn.on('pointerdown', () => {
-            document.body.style.cursor = 'default';
-            const nextIndex = this.biasIndex + 1;
-            this.cameras.main.fadeOut(400, 0, 0, 0);
-            this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-                if (nextIndex < BiasData.length) {
-                    this.scene.start(BiasData[nextIndex].id, { score: this.score });
-                } else {
-                    this.scene.start('ResultScene', { score: this.score });
-                }
-            });
-        });
-
-        this.tweens.add({
-            targets: btn,
-            y: targetY,
-            alpha: 1,
-            duration: 350,
-            ease: 'Back.easeOut'
+    goNext() {
+        const nextIndex = this.biasIndex + 1;
+        const target = nextIndex < BiasData.length ? BiasData[nextIndex].id : 'ResultScene';
+        this.cameras.main.fadeOut(400, 0, 0, 0);
+        this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+            this.scene.start(target, { score: this.score });
         });
     }
 }
