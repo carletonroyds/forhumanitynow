@@ -5,33 +5,31 @@ import { MenuScene } from './scenes/MenuScene.js';
 import { ResultScene } from './scenes/ResultScene.js';
 import * as BiasScreens from './scenes/BiasScreens.js';
 
-// Responsive sizing: the internal game size always matches the window's
-// aspect ratio, with the shorter side fixed at DESIGN units. This means
-// no letterboxing at any breakpoint (portrait or landscape) and all
-// scenes can lay themselves out using real width/height values.
-const DESIGN = 1080;
-
-function getGameSize() {
+// Responsive sizing: the canvas always matches the window 1:1 (no FIT
+// scaling, so it can never stretch or sit off-center). The internal
+// resolution is multiplied by the device pixel ratio and zoomed back
+// down with CSS so text stays sharp on retina/mobile screens.
+function getViewport() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = Math.max(window.innerWidth, 1);
     const h = Math.max(window.innerHeight, 1);
-    const aspect = w / h;
-    if (aspect >= 1) {
-        // Landscape / square: fix height
-        return { width: Math.round(DESIGN * aspect), height: DESIGN };
-    }
-    // Portrait: fix width
-    return { width: DESIGN, height: Math.round(DESIGN / aspect) };
+    return {
+        width: Math.round(w * dpr),
+        height: Math.round(h * dpr),
+        zoom: 1 / dpr
+    };
 }
 
-const initialSize = getGameSize();
+const vp = getViewport();
 
 const config = {
     type: Phaser.AUTO,
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.NONE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: initialSize.width,
-        height: initialSize.height
+        width: vp.width,
+        height: vp.height,
+        zoom: vp.zoom
     },
     backgroundColor: '#000000',
     parent: 'game-container',
@@ -55,19 +53,21 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-// On resize / orientation change, resize the game to the new aspect ratio
-// and re-lay-out whatever scene is active.
+// On resize / orientation change, resize the canvas to the new window
+// size and re-lay-out whatever scene is active.
 let resizeTimer = null;
 function handleResize() {
     if (resizeTimer) clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-        const { width, height } = getGameSize();
+        const next = getViewport();
         const current = game.scale.gameSize;
-        if (Math.abs(width - current.width) < 2 && Math.abs(height - current.height) < 2) {
+        if (next.width === current.width && next.height === current.height) {
             game.scale.refresh();
             return;
         }
-        game.scale.resize(width, height);
+        game.scale.setZoom(next.zoom);
+        game.scale.resize(next.width, next.height);
+        game.scale.refresh();
         game.scene.getScenes(true).forEach((scene) => {
             const data = typeof scene.getRestartData === 'function'
                 ? scene.getRestartData()

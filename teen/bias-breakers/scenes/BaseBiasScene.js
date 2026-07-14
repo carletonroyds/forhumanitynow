@@ -26,8 +26,11 @@ export class BaseBiasScene extends Phaser.Scene {
         const width = this.scale.gameSize.width;
         const height = this.scale.gameSize.height;
         const isPortrait = height > width;
-        // Design unit: 1 at the reference size, scales with the shorter axis
-        const u = isPortrait ? width / 1080 : height / 1080;
+        // Design unit: 1 at the reference desktop size, scaled so text
+        // stays large and readable on phones in both orientations.
+        const u = isPortrait
+            ? Math.min(width / 720, height / 1080)
+            : Math.min(height / 1080, width / 1280);
         const cx = width / 2;
 
         this.cameras.main.fadeIn(400, 0, 0, 0);

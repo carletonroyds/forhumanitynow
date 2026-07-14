@@ -18,7 +18,9 @@ export class ResultScene extends Phaser.Scene {
         const width = this.scale.gameSize.width;
         const height = this.scale.gameSize.height;
         const isPortrait = height > width;
-        const u = isPortrait ? width / 1080 : height / 1080;
+        const u = isPortrait
+            ? Math.min(width / 720, height / 1080)
+            : Math.min(height / 1080, width / 1280);
         const cx = width / 2;
 
         this.cameras.main.fadeIn(500, 0, 0, 0);
