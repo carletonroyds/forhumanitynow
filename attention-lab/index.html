@@ -1,0 +1,2785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="The Attention Lab. Three short self experiments that give you real numbers about your own attention.">
+<title>The Attention Lab — Interactive Experiments</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   THE ATTENTION LAB
+   ForHumanityNow. Single file. No build step, no frameworks.
+   Palette and type are set in :root below.
+   ============================================================ */
+
+:root{
+  /* Field: navy that falls away to near black. */
+  --bg:#05070F;
+  --bg-lift:#0B1226;
+
+  /* Surfaces are translucent navy so the atmosphere behind them shows through.
+     --surface-solid is the opaque fallback for anything that sits over text
+     and must not let it read through, such as the notification cards. */
+  --surface:rgba(20,28,52,.72);
+  --surface-solid:#141C34;
+  --surface-2:rgba(28,38,68,.78);
+  --surface-3:#232F55;
+
+  --text:#F5F8FF;
+  --text-2:#AFBBD4;   /* secondary body copy */
+  --muted:#8593B0;    /* labels, eyebrows and counters only */
+
+  /* Accents. One per experiment, plus the shared data and warning tones. */
+  --blue:#5B93FF;
+  --amber:#FFB020;
+  --teal:#2FE3C2;
+  --cyan:#4DD6FF;
+  --violet:#8B5CF6;
+  --magenta:#E05CD8;
+  --red:#FF7A93;
+
+  --grad-hero:linear-gradient(100deg,#4DD6FF 0%,#5B93FF 38%,#8B5CF6 68%,#E05CD8 100%);
+  --grad-cta:linear-gradient(96deg,#37C6F0 0%,#4B7BFF 34%,#8B5CF6 66%,#DE55D2 100%);
+
+  --cue-blue-bg:#14336B;
+  --cue-blue-line:#3465B8;
+  --cue-amber-bg:#573D0B;
+  --cue-amber-line:#8F6614;
+
+  /* Hairlines are deliberately faint. Separation is carried by tone, glow and
+     shadow instead, which is what stops the interface reading as outlined boxes. */
+  --line:rgba(180,205,255,.10);
+  --line-soft:rgba(180,205,255,.06);
+  --line-strong:rgba(180,205,255,.20);
+
+  --radius:26px;
+  --radius-sm:20px;
+  --radius-xs:12px;
+  --radius-pill:999px;
+
+  /* Two step elevation. Large radius, low opacity, no hard edges. */
+  --lit:inset 0 1px 0 rgba(190,215,255,.10);  /* catches the light on a top edge */
+  --e1:0 1px 2px rgba(0,0,0,.34), 0 12px 32px rgba(2,6,20,.44);
+  --e2:0 2px 8px rgba(0,0,0,.40), 0 28px 64px rgba(2,6,20,.58);
+  --shadow:var(--e2);
+
+  --ease:cubic-bezier(.32,.72,0,1);
+  --ease-soft:cubic-bezier(.25,.1,.25,1);
+
+  --display:'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --body:'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+}
+
+/* Ambient wash. Two very low opacity radials so the page reads as lit from
+   somewhere rather than as a flat black field. Static, no animation. */
+.ambient{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(78% 40% at 76% 4%, rgba(139,92,246,.28), transparent 64%),
+    radial-gradient(64% 34% at 22% 12%, rgba(77,214,255,.16), transparent 66%),
+    radial-gradient(90% 44% at 50% 102%, rgba(224,92,216,.11), transparent 68%),
+    linear-gradient(180deg, var(--bg-lift) 0%, var(--bg) 52%);
+}
+
+/* The single background texture. Nothing else moves back here. */
+.grain{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.wrap{
+  position:relative;
+  z-index:1;
+  max-width:480px;
+  margin:0 auto;
+  padding:20px 20px 44px;
+}
+@media (min-width:700px){ .wrap{padding-top:48px;padding-bottom:64px} }
+
+/* ---------- Type ---------- */
+
+h1,h2,h3{
+  font-family:var(--display);
+  letter-spacing:-.02em;
+  line-height:1.12;
+  margin:0 0 12px;
+  font-weight:700;
+}
+/* Large type wants tighter tracking, small type wants looser. */
+h1{letter-spacing:-.032em}
+h2{letter-spacing:-.024em}
+h1{font-size:clamp(29px,8.4vw,42px)}
+#screen-intro h1{margin-bottom:10px}
+#screen-intro .eyebrow{margin-bottom:8px}
+#screen-intro .lede{margin-bottom:22px}
+h2{font-size:clamp(22px,6vw,28px)}
+h3{font-size:18px;letter-spacing:-.01em}
+
+p{margin:0 0 16px}
+p:last-child{margin-bottom:0}
+
+.eyebrow{
+  font-family:var(--display);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:0 0 10px;
+  display:block;
+}
+.eyebrow.amber{color:var(--amber)}
+.eyebrow.brandmark{color:#A78BFA}
+.eyebrow.cyan{color:var(--cyan)}
+
+.lede{font-size:17px;color:var(--text-2)}
+.small{font-size:14px;color:var(--text-2);line-height:1.55}
+.tiny{font-size:12.5px;color:var(--text-2);line-height:1.5}
+
+strong{font-weight:600;color:var(--text)}
+
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+
+/* ---------- Intro screen ---------- */
+
+.seclabel{
+  font-family:var(--display);font-size:11px;font-weight:600;
+  letter-spacing:.18em;text-transform:uppercase;color:#9B8CD8;
+  margin:0 0 10px;
+}
+
+/* One layer only. The old version nested cards inside a bordered card. */
+
+.disclose{margin-top:14px;border-top:1px solid var(--line-soft)}
+.disclose > summary{
+  list-style:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;
+  font-family:var(--display);font-size:12px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  transition:color .22s var(--ease-soft);
+}
+.disclose > summary::-webkit-details-marker{display:none}
+.disclose > summary:hover{color:var(--text)}
+.disclose > summary::after{
+  content:'';width:6px;height:6px;flex:none;
+  border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;
+  transform:translateY(-2px) rotate(45deg);
+  transition:transform .28s var(--ease);
+}
+.disclose[open] > summary::after{transform:translateY(1px) rotate(225deg)}
+.disclose .body{padding:0 2px 8px}
+
+
+/* ---------- Hero ---------- */
+
+.hero{position:relative;margin-bottom:26px;overflow-x:clip}
+.hero-copy{position:relative;z-index:2}
+/* The headline clears the artwork. The lede sits below it and can run wider. */
+#screen-intro h1{max-width:66%}
+#screen-intro .lede{max-width:86%}
+#screen-intro h1{
+  font-size:clamp(34px,10.6vw,52px);
+  line-height:1.02;
+  letter-spacing:-.04em;
+  margin-bottom:14px;
+}
+/* The focal point. Falls back to a flat colour where the clip is unsupported. */
+.grad{
+  color:var(--cyan);
+  background:var(--grad-hero);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+@supports not ((-webkit-background-clip:text) or (background-clip:text)){
+  .grad{-webkit-text-fill-color:currentColor;color:var(--cyan)}
+}
+#screen-intro .lede{font-size:17px;line-height:1.5;margin-bottom:0;color:var(--text-2)}
+
+.hero-art{
+  position:absolute;
+  top:-30px;right:-20px;
+  width:188px;height:188px;
+  z-index:1;
+  pointer-events:none;
+}
+.hero-art svg{width:100%;height:100%;display:block}
+
+@keyframes breathe{0%,100%{opacity:.72}50%{opacity:1}}
+@keyframes drift{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.9}}
+.art-glow{animation:breathe 6s var(--ease-soft) infinite}
+.art-float{animation:drift 9s var(--ease-soft) infinite}
+.art-spark{animation:twinkle 4s var(--ease-soft) infinite}
+.art-spark:nth-of-type(2n){animation-duration:5.5s;animation-delay:-1.4s}
+.art-spark:nth-of-type(3n){animation-duration:7s;animation-delay:-2.8s}
+
+/* ---------- Experiment cards ---------- */
+
+.explist{list-style:none;margin:0 0 22px;padding:0;display:flex;flex-direction:column;gap:12px}
+
+.exp{
+  --accent:var(--blue);
+  position:relative;
+  display:flex;align-items:center;gap:11px;
+  width:100%;
+  padding:15px 12px 15px 15px;
+  text-align:left;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  color:var(--text);
+  cursor:pointer;
+  touch-action:manipulation;
+  overflow:hidden;
+  box-shadow:var(--lit),var(--e1);
+  transition:border-color .3s var(--ease-soft),transform .3s var(--ease),box-shadow .3s var(--ease-soft);
+}
+/* the accent wash lives in a pseudo element so it can fade without repainting text */
+.exp::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(100deg,rgba(120,150,255,.10),transparent 58%);
+  background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 16%,transparent),transparent 58%);
+  opacity:.55;
+  transition:opacity .3s var(--ease-soft);
+}
+.exp:hover,.exp[aria-expanded="true"]{
+  transform:translateY(-2px);
+  border-color:var(--line-strong);
+  border-color:color-mix(in srgb,var(--accent) 46%,transparent);
+  box-shadow:var(--lit),var(--e1),0 12px 34px rgba(2,6,20,.5);
+  box-shadow:var(--lit),var(--e1),0 0 0 1px color-mix(in srgb,var(--accent) 16%,transparent),
+             0 12px 34px color-mix(in srgb,var(--accent) 20%,transparent);
+}
+.exp:hover::before,.exp[aria-expanded="true"]::before{opacity:1}
+.exp:active{transform:translateY(0) scale(.995)}
+.exp.n-blue{--accent:var(--blue)}
+.exp.n-amber{--accent:var(--amber)}
+.exp.n-teal{--accent:var(--teal)}
+
+.exp-num{
+  position:relative;z-index:1;
+  flex:none;width:36px;
+  font-family:var(--display);font-size:26px;font-weight:700;
+  line-height:1;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;
+  color:var(--accent);
+}
+/* the small dot matrix under each number */
+.exp-dots{
+  display:block;margin-top:6px;height:14px;
+  background-image:radial-gradient(currentColor 1px, transparent 1.1px);
+  background-size:5.5px 4.6px;
+  color:var(--accent);opacity:.42;
+}
+.exp-icon{
+  position:relative;z-index:1;
+  flex:none;
+  width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:1.5px solid var(--accent);
+  border-color:color-mix(in srgb,var(--accent) 62%,transparent);
+  color:var(--accent);
+  background:transparent;
+  background:color-mix(in srgb,var(--accent) 9%,transparent);
+  box-shadow:0 0 18px rgba(120,150,255,.22);
+  box-shadow:0 0 18px color-mix(in srgb,var(--accent) 26%,transparent),
+             inset 0 0 12px color-mix(in srgb,var(--accent) 12%,transparent);
+}
+.exp-icon svg{width:20px;height:20px}
+.exp-body{position:relative;z-index:1;flex:1;min-width:0}
+.exp-title{
+  display:block;font-family:var(--display);font-size:17px;font-weight:600;
+  letter-spacing:-.015em;line-height:1.25;
+}
+.exp-desc{display:block;font-size:13.2px;color:var(--text-2);line-height:1.4;margin-top:2px}
+.exp-chev{
+  position:relative;z-index:1;
+  flex:none;width:16px;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .32s var(--ease),color .3s var(--ease-soft);
+}
+.exp-chev svg{width:14px;height:14px}
+.exp[aria-expanded="true"] .exp-chev{transform:rotate(180deg);color:var(--accent)}
+
+.exp-more{
+  display:none;
+  margin:-2px 0 0;padding:2px 16px 16px 63px;
+  font-size:14px;line-height:1.55;color:var(--text-2);
+}
+.exp-more.is-open{display:block;animation:rise .3s var(--ease) both}
+
+/* ---------- Trust row ---------- */
+
+.trust{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+  gap:8px 16px;margin:0 0 20px;padding:0;list-style:none;
+  font-size:13px;color:var(--text-2);
+}
+.trust li{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.trust svg{width:15px;height:15px;flex:none}
+.trust .i-time{color:var(--violet)}
+.trust .i-lock{color:var(--amber)}
+.trust .i-shield{color:var(--teal)}
+
+/* ---------- Gradient CTA ---------- */
+
+
+/* ---------- Top bar ---------- */
+
+.topbar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding-bottom:18px;
+  margin-bottom:18px;
+  border-bottom:1px solid var(--line-soft);
+  min-height:48px;
+}
+.topbar[hidden]{display:none}
+.brand{
+  font-family:var(--display);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--muted);
+  white-space:nowrap;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;
+}
+.steps{display:flex;gap:6px;margin-left:auto;align-items:center;flex:none}
+.steps i{
+  display:block;width:22px;height:3px;border-radius:2px;
+  background:rgba(244,241,234,.14);
+}
+.steps i.is-done{background:var(--line-strong)}
+.steps i.is-now{background:var(--grad-cta);box-shadow:0 0 10px rgba(91,123,255,.6)}
+.exit{
+  appearance:none;background:transparent;border:0;
+  color:var(--muted);width:48px;height:48px;border-radius:var(--radius-pill);
+  font-size:16px;line-height:1;cursor:pointer;flex:none;touch-action:manipulation;
+  display:flex;align-items:center;justify-content:center;
+  margin-right:-8px;
+  transition:color .22s var(--ease-soft),background-color .22s var(--ease-soft);
+}
+.exit:hover{color:var(--text);background:var(--surface-2)}
+
+/* ---------- Screens and panels ---------- */
+
+.screen{display:none}
+.screen.is-active{display:block;animation:rise .38s var(--ease) both}
+.panel{display:none}
+.panel.is-active{display:block;animation:rise .34s var(--ease) both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+[data-focus]:focus{outline:none}
+
+/* ---------- Cards ---------- */
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:var(--lit),var(--e1);
+}
+.card + .card{margin-top:12px}
+.card.flat{background:transparent;border-color:var(--line-soft)}
+
+.rule{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 17px;border-radius:var(--radius-sm);
+  background:var(--surface);
+  box-shadow:var(--lit),var(--e1);
+  margin-bottom:8px;
+}
+.rule .swatch{width:14px;height:14px;border-radius:4px;flex:none}
+.rule .swatch.blue{background:var(--cue-blue-line)}
+.rule .swatch.amber{background:var(--amber)}
+.rule span.txt{font-size:14.5px;line-height:1.45}
+
+.stack{display:flex;flex-direction:column;gap:12px;margin-top:24px}
+
+/* ---------- Buttons ---------- */
+
+.btn{
+  appearance:none;
+  display:flex;align-items:center;justify-content:center;
+  width:100%;min-height:56px;padding:14px 22px;
+  border-radius:var(--radius-pill);border:1px solid transparent;
+  font-family:var(--display);font-size:15.5px;font-weight:600;
+  letter-spacing:.05em;text-transform:uppercase;
+  cursor:pointer;touch-action:manipulation;
+  transition:filter .22s var(--ease-soft),background-color .22s var(--ease-soft),
+             border-color .22s var(--ease-soft),color .22s var(--ease-soft),
+             transform .18s var(--ease),box-shadow .22s var(--ease-soft);
+}
+.btn-primary{
+  background:var(--grad-cta);color:#FFFFFF;border:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.30), 0 12px 30px rgba(91,123,255,.28);
+}
+.btn-primary:hover{filter:brightness(1.07) saturate(1.04)}
+.btn-primary:active{filter:brightness(.97)}
+.btn-icon{gap:11px}
+.btn-icon svg{width:21px;height:21px;flex:none}
+.btn-ghost{background:var(--surface);color:var(--text);border-color:var(--line);box-shadow:var(--e1)}
+.btn-ghost:hover{border-color:var(--line-strong);background:var(--surface-2)}
+.btn-quiet{
+  background:transparent;color:var(--muted);border-color:transparent;
+  min-height:48px;font-size:13px;letter-spacing:.1em;
+}
+.btn-quiet:hover{color:var(--text)}
+.btn:active{transform:scale(.985)}
+
+:focus-visible{
+  outline:2px solid var(--cyan);
+  outline-offset:3px;
+  border-radius:8px;
+}
+
+/* ---------- Instruction bullets and the keyboard cue ---------- */
+
+.bullets{
+  margin:16px 0;padding-left:20px;
+  color:var(--text-2);font-size:14.5px;line-height:1.55;
+}
+.bullets li{margin-bottom:7px}
+.bullets li:last-child{margin-bottom:0}
+.bullets li::marker{color:var(--muted)}
+
+.keycue{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;
+  border:1px solid rgba(77,214,255,.38);
+  background:linear-gradient(180deg, rgba(77,214,255,.10), rgba(77,214,255,.045));
+  border-radius:var(--radius-sm);
+  padding:15px 17px;
+  box-shadow:var(--e1);
+}
+.keycue-label{
+  width:100%;
+  font-family:var(--display);font-size:10.5px;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);
+}
+.keycue-row{display:flex;align-items:center;gap:8px;font-size:14px}
+.keycue-or{font-size:12px;color:var(--muted)}
+
+kbd{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:32px;height:32px;padding:0 9px;
+  font-family:var(--display);font-size:14px;font-weight:600;line-height:1;
+  background:var(--surface-3);color:var(--text);
+  border:1px solid rgba(244,241,234,.16);border-bottom-color:rgba(0,0,0,.5);border-bottom-width:2px;
+  border-radius:8px;
+  box-shadow:0 1px 2px rgba(0,0,0,.28);
+}
+
+/* Hidden on touch, where there is no keyboard to talk about. Written as
+   a coarse pointer exclusion rather than a fine pointer opt in, so that
+   a browser which does not answer the query still shows the keys. */
+@media (pointer:coarse){ .keycue{display:none} }
+
+/* ---------- Test one ---------- */
+
+.runhead{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+.runhead .counter{
+  margin-left:auto;font-family:var(--display);font-size:13px;
+  font-variant-numeric:tabular-nums;color:var(--muted);
+}
+.meter{height:3px;border-radius:var(--radius-pill);background:rgba(244,241,234,.09);overflow:hidden;margin-bottom:20px}
+.meter i{
+  display:block;height:100%;width:0;border-radius:inherit;
+  background:var(--grad-cta);
+  box-shadow:0 0 10px rgba(91,123,255,.55);
+  transition:width .35s var(--ease);
+}
+
+.stim{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  height:214px;border-radius:var(--radius);
+  border:1px solid var(--line);background:var(--surface-solid);
+  box-shadow:var(--lit),var(--e1);
+  /* No transition here on purpose. The cue colour has to land on the
+     same frame as the digit or the reaction time reading is wrong. */
+  transition:none;
+  user-select:none;-webkit-user-select:none;
+}
+.stim.cue-blue{background:var(--cue-blue-bg);border-color:var(--cue-blue-line)}
+.stim.cue-amber{background:var(--cue-amber-bg);border-color:var(--cue-amber-line)}
+.stim .digit{
+  font-family:var(--display);font-size:104px;font-weight:700;
+  font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.04em;
+}
+.stim .fix{font-size:26px;color:var(--muted);line-height:1}
+.stim .cuetag{
+  position:absolute;top:12px;left:14px;
+  font-family:var(--display);font-size:10.5px;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:rgba(244,241,234,.68);
+}
+
+.feedback{
+  min-height:22px;margin:12px 0 0;text-align:center;
+  font-size:14px;color:var(--muted);
+}
+.feedback.ok{color:var(--cyan)}
+.feedback.no{color:var(--red)}
+
+.answers{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;
+  transition:opacity .2s var(--ease-soft);
+}
+.answers.is-waiting{opacity:.32}
+.ans{
+  appearance:none;cursor:pointer;touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  min-height:76px;padding:12px 8px;
+  background:var(--surface-2);border:1px solid var(--line);
+  border-radius:var(--radius-sm);color:var(--text);
+  box-shadow:var(--lit),var(--e1);
+  transition:border-color .2s var(--ease-soft),background-color .2s var(--ease-soft),transform .16s var(--ease);
+}
+.ans:hover{border-color:var(--line-strong);background:var(--surface-3)}
+.ans:active{transform:scale(.98)}
+.ans .main{
+  font-family:var(--display);font-size:17px;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;
+}
+.ans .sub{font-size:12px;color:var(--text-2);min-height:17px;line-height:1.4}
+.ans .key{
+  display:block;margin-top:5px;font-family:var(--display);font-size:10.5px;
+  font-weight:600;letter-spacing:.14em;color:var(--text-2);
+  border:1px solid rgba(244,241,234,.20);border-radius:5px;padding:1px 7px;
+}
+@media (pointer:coarse){ .ans .key{display:none} }
+
+/* Reaction time trace. Each bar is one trial. */
+.trace{
+  display:flex;align-items:flex-end;gap:2px;height:46px;margin:14px 0 6px;
+}
+.trace i{
+  flex:1 1 0;min-width:2px;min-height:2px;border-radius:1px;
+  background:var(--cyan);opacity:.8;
+}
+.trace i.is-err{background:var(--red);opacity:.85}
+.trace i.is-drop{background:var(--muted);opacity:.3}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--text-2)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend b{display:block;width:8px;height:8px;border-radius:2px}
+
+.statrow{display:flex;gap:10px;margin-top:16px}
+.statrow > div{
+  flex:1;background:var(--surface-2);border:0;
+  border-radius:var(--radius-sm);padding:13px 15px;
+}
+.statrow .k{
+  display:block;font-family:var(--display);font-size:10.5px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;
+}
+.statrow .v{
+  font-family:var(--display);font-size:24px;font-weight:600;
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+}
+
+/* ---------- Test two ---------- */
+
+.reader-wrap{position:relative;overflow:hidden;border-radius:var(--radius)}
+.reader{
+  /* Fixed pixels on purpose. This page reports its own height to the parent
+     frame, so a vh unit here would feed back into the height it just set. */
+  height:420px;overflow-y:auto;
+  background:var(--surface-solid);border:1px solid var(--line);
+  border-radius:var(--radius);padding:24px 22px 28px;
+  box-shadow:var(--lit),var(--e1);
+  -webkit-overflow-scrolling:touch;
+}
+.reader h3{margin-bottom:14px}
+.reader p{font-size:16px;line-height:1.72}
+
+.notif-host{
+  position:absolute;top:12px;right:12px;
+  width:min(272px,78%);
+  display:flex;flex-direction:column;gap:10px;
+  z-index:5;pointer-events:none;
+}
+.notif-host > *{pointer-events:auto}
+.notif{
+  display:flex;align-items:stretch;gap:0;
+  background:var(--surface-3);
+  border:1px solid rgba(244,241,234,.10);
+  border-radius:var(--radius-sm);overflow:hidden;
+  /* Tighter than --e2 on purpose. A wide soft shadow here dims the passage
+     the reader is trying to read. */
+  box-shadow:var(--lit), 0 2px 6px rgba(0,0,0,.26), 0 12px 26px rgba(0,0,0,.22);
+  animation:slidein .34s var(--ease) both;
+}
+@keyframes slidein{from{opacity:0;transform:translateX(115%)}to{opacity:1;transform:none}}
+.notif.is-out{animation:slideout .22s var(--ease-soft) both}
+@keyframes slideout{to{opacity:0;transform:translateX(115%)}}
+.notif-open{
+  appearance:none;background:transparent;border:0;cursor:pointer;
+  flex:1;min-width:0;text-align:left;padding:11px 4px 11px 13px;color:var(--text);
+  font-family:var(--body);touch-action:manipulation;
+}
+.notif-app{
+  display:block;font-family:var(--display);font-size:10.5px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;
+}
+.notif-msg{display:block;font-size:13.5px;line-height:1.4}
+.notif-x{
+  appearance:none;background:transparent;border:0;cursor:pointer;
+  color:var(--muted);width:42px;flex:none;font-size:15px;line-height:1;
+  touch-action:manipulation;
+}
+.notif-x:hover{color:var(--text)}
+
+.decoy{
+  position:absolute;inset:0;z-index:9;
+  background:rgba(5,8,20,.90);
+  display:flex;align-items:center;justify-content:center;padding:22px;
+  animation:rise .26s var(--ease) both;
+  border-radius:var(--radius);
+}
+.decoy .inner{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:20px;max-width:340px;
+}
+
+.qhead{display:flex;align-items:baseline;margin-bottom:10px}
+.qhead .counter{
+  margin-left:auto;font-family:var(--display);font-size:13px;
+  font-variant-numeric:tabular-nums;color:var(--muted);
+}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.opt{
+  appearance:none;cursor:pointer;touch-action:manipulation;
+  display:flex;align-items:center;gap:12px;
+  width:100%;min-height:58px;padding:13px 18px;text-align:left;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius-sm);color:var(--text);
+  font-family:var(--body);font-size:15px;line-height:1.45;
+  box-shadow:var(--lit),var(--e1);
+  transition:border-color .22s var(--ease-soft),background-color .22s var(--ease-soft),transform .18s var(--ease);
+}
+.opt:hover{border-color:var(--line-strong);background:var(--surface-2)}
+.opt:active{transform:scale(.99)}
+.opt .mark{
+  flex:none;width:26px;height:26px;border-radius:8px;
+  background:var(--surface-2);border:1px solid var(--line);
+  font-family:var(--display);font-size:11px;font-weight:600;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ---------- Test three ---------- */
+
+.waitbox{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:30px 22px;text-align:center;
+  box-shadow:var(--lit),var(--e1);
+}
+.waitbar{
+  height:10px;border-radius:var(--radius-pill);background:rgba(244,241,234,.09);
+  overflow:hidden;margin:24px 0 14px;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.35);
+}
+.waitbar i{
+  display:block;height:100%;width:0;
+  background:var(--grad-cta);
+  box-shadow:0 0 14px rgba(139,92,246,.55);
+}
+.waitpct{
+  font-family:var(--display);font-size:34px;font-weight:600;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--cyan);
+  text-shadow:0 0 22px rgba(77,214,255,.30);
+}
+
+/* ---------- Results ---------- */
+
+.result{
+  --accent:var(--cyan);
+  position:relative;overflow:hidden;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:24px 22px;margin-bottom:12px;
+  box-shadow:var(--lit),var(--e1);
+}
+/* Same accent wash as the cards on the intro, so a result reads as belonging
+   to the experiment it came from. */
+.result::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(120deg,rgba(120,150,255,.09),transparent 56%);
+  background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 13%,transparent),transparent 56%);
+}
+.result > *{position:relative;z-index:1}
+.result.n-blue{--accent:var(--blue)}
+.result.n-amber{--accent:var(--amber)}
+.result.n-teal{--accent:var(--teal)}
+.result .eyebrow{color:var(--accent)}
+.big{
+  font-family:var(--display);
+  font-size:clamp(72px,19vw,92px);
+  font-weight:700;line-height:.94;letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;
+  color:var(--cyan);
+  text-shadow:0 0 28px rgba(77,214,255,.32);
+  margin:6px 0 2px;
+  display:block;
+}
+.big.is-cost{color:var(--red);text-shadow:0 0 28px rgba(255,122,147,.30)}
+.big.is-teal{color:var(--teal);text-shadow:0 0 28px rgba(47,227,194,.28)}
+.unit{
+  font-family:var(--display);font-size:13px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  display:block;margin-bottom:14px;
+}
+.interp{font-size:15px;line-height:1.6}
+
+.notice{
+  border:1px solid rgba(255,176,32,.22);
+  border-radius:var(--radius);
+  padding:22px;margin:20px 0 12px;
+  background:linear-gradient(180deg, rgba(255,176,32,.075), rgba(255,176,32,.035));
+  box-shadow:var(--e1);
+}
+.notice h3{color:var(--amber);margin-bottom:12px}
+.notice ul{margin:0;padding-left:18px}
+.notice li{margin-bottom:10px;font-size:14.5px;line-height:1.55}
+.notice li:last-child{margin-bottom:0}
+
+.compare{
+  border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:15px 17px;margin-top:14px;font-size:14px;color:var(--text-2);
+  background:rgba(244,241,234,.025);
+}
+
+.next-item{
+  border-top:1px solid var(--line-soft);padding:18px 0;
+}
+.next-item:first-of-type{border-top:0;padding-top:6px}
+.next-item h3{margin-bottom:6px}
+.next-item p{font-size:15px;color:var(--text-2);margin:0}
+
+/* ---------- Dialog ---------- */
+
+.overlay{
+  position:fixed;inset:0;z-index:60;
+  background:rgba(4,6,16,.88);
+  display:none;align-items:center;justify-content:center;padding:22px;
+}
+.overlay.is-open{display:flex;animation:rise .22s var(--ease) both}
+.dialog{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:24px;max-width:340px;width:100%;
+  box-shadow:var(--e2);
+}
+.dialog h3{margin-bottom:8px}
+
+/* ---------- Motion preference ---------- */
+
+@media (prefers-reduced-motion: reduce){
+  .art-glow,.art-float,.art-spark{animation:none !important;opacity:1}
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
+  .btn:active{transform:none}
+}
+
+/* ---------- Narrow phones ---------- */
+
+@media (max-width:379px){
+  .brand{font-size:10.5px;letter-spacing:.1em}
+  .steps{gap:5px}
+  .steps i{width:16px}
+}
+
+@media (max-width:359px){
+  .wrap{padding:16px 14px 44px}
+  .lede{font-size:16px}
+  .exp{padding:12px 14px;gap:12px}
+  .exp-title{font-size:15px}
+  .exp-desc{font-size:13.5px}
+  .stim{height:180px}
+  .stim .digit{font-size:88px}
+  .ans .main{font-size:15px;letter-spacing:.04em}
+  .reader{height:360px}
+  .hero-art{width:132px;height:132px;top:-14px;right:-14px}
+  .hero-copy{max-width:72%}
+  .exp{padding:14px 12px 14px 14px;gap:10px}
+  .exp-num{width:38px;font-size:25px}
+  .exp-icon{width:40px;height:40px}
+  .exp-icon svg{width:19px;height:19px}
+  .exp-title{font-size:16px}
+  .exp-desc{font-size:13px}
+  .exp-more{padding-left:62px;padding-right:14px}
+  .trust{gap:8px 14px;font-size:12.5px}
+  .statrow{flex-direction:column}
+}
+
+/* ============================================================
+   2026 EDITORIAL REDESIGN
+   A cinematic landing screen inspired by the supplied direction,
+   with a quieter, focused workspace for the experiments themselves.
+   ============================================================ */
+
+:root{
+  --bg:#020611;
+  --bg-lift:#071126;
+  --surface:rgba(12,22,50,.74);
+  --surface-2:rgba(22,35,72,.76);
+  --surface-3:#18264A;
+  --line:rgba(151,180,255,.16);
+  --line-soft:rgba(151,180,255,.085);
+  --line-strong:rgba(174,197,255,.30);
+  --radius:22px;
+  --radius-sm:17px;
+}
+
+body{
+  min-height:100vh;
+  background:#020611;
+  letter-spacing:-.006em;
+}
+
+.ambient{
+  background:
+    radial-gradient(circle at 88% 16%, rgba(202,50,226,.19), transparent 19%),
+    radial-gradient(circle at 72% 12%, rgba(28,112,255,.21), transparent 25%),
+    radial-gradient(circle at 16% 15%, rgba(0,183,255,.11), transparent 24%),
+    radial-gradient(circle at 51% 90%, rgba(65,39,215,.11), transparent 32%),
+    linear-gradient(135deg,#020611 0%,#061128 46%,#07071d 72%,#020511 100%);
+}
+
+.ambient::before,
+.ambient::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:.44;
+  background-image:
+    radial-gradient(circle at 12% 7%, #4b7bff 0 1px, transparent 1.8px),
+    radial-gradient(circle at 83% 9%, #db35e7 0 1.2px, transparent 2px),
+    radial-gradient(circle at 73% 27%, #00cfff 0 1px, transparent 1.8px),
+    radial-gradient(circle at 96% 38%, #ff6b71 0 1.1px, transparent 2px),
+    radial-gradient(circle at 64% 41%, #783eff 0 1px, transparent 1.8px),
+    radial-gradient(circle at 91% 61%, #1b75ff 0 1px, transparent 1.7px);
+}
+.ambient::after{transform:scale(-1,1);opacity:.20;filter:blur(.3px)}
+
+.wrap{
+  width:min(100%,1120px);
+  max-width:1120px;
+  padding:42px 48px 68px;
+}
+
+.grain{opacity:.022}
+
+#screen-intro .brandmark{
+  margin:0 0 32px;
+  color:#8f55ff;
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:.24em;
+  text-shadow:0 0 24px rgba(143,85,255,.34);
+}
+
+#screen-intro .hero{
+  min-height:382px;
+  margin:0 0 24px;
+  overflow:visible;
+}
+
+#screen-intro .hero-copy{
+  padding-top:0;
+  max-width:62%;
+}
+
+#screen-intro h1{
+  max-width:none;
+  margin:0 0 24px;
+  font-size:clamp(62px,7.8vw,94px);
+  line-height:.96;
+  letter-spacing:-.057em;
+  text-wrap:balance;
+}
+
+#screen-intro h1 .grad{display:block;padding-bottom:.08em}
+
+#screen-intro .lede{
+  max-width:74%;
+  margin:0;
+  color:#aeb8ce;
+  font-size:clamp(20px,2.25vw,29px);
+  line-height:1.48;
+  letter-spacing:-.02em;
+}
+
+.hero-art{
+  top:-44px;
+  right:-44px;
+  width:570px;
+  height:500px;
+  filter:drop-shadow(0 26px 54px rgba(17,63,255,.18)) drop-shadow(0 8px 42px rgba(228,44,222,.18));
+}
+.hero-art img{width:100%;height:100%;object-fit:contain;display:block;animation:drift 9s var(--ease-soft) infinite}
+.hero-art svg{display:none}
+
+.seclabel{
+  margin:0 0 18px;
+  color:#8d56ee;
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:.34em;
+}
+
+.explist{gap:14px;margin-bottom:28px}
+
+.exp{
+  min-height:140px;
+  gap:28px;
+  padding:24px 30px 24px 34px;
+  border-radius:22px;
+  border-color:color-mix(in srgb,var(--accent) 38%,rgba(151,180,255,.14));
+  background:
+    linear-gradient(100deg,color-mix(in srgb,var(--accent) 7%,transparent),transparent 48%),
+    linear-gradient(110deg,rgba(10,20,46,.86),rgba(18,25,61,.76));
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.exp::before{
+  background:
+    radial-gradient(circle at 24% 50%,color-mix(in srgb,var(--accent) 15%,transparent),transparent 31%),
+    linear-gradient(90deg,color-mix(in srgb,var(--accent) 8%,transparent),transparent 60%);
+}
+.exp::after{
+  content:"";
+  position:absolute;
+  inset:1px;
+  border-radius:inherit;
+  pointer-events:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+}
+.exp-num{
+  width:110px;
+  font-size:50px;
+  letter-spacing:-.06em;
+}
+.exp-dots{
+  width:90px;
+  height:29px;
+  margin-top:10px;
+  background-size:16px 13px;
+  background-image:radial-gradient(currentColor 1.5px,transparent 1.9px);
+}
+.exp-icon{
+  width:88px;
+  height:88px;
+  border-width:1.5px;
+  box-shadow:
+    0 0 34px color-mix(in srgb,var(--accent) 32%,transparent),
+    inset 0 0 20px color-mix(in srgb,var(--accent) 10%,transparent);
+}
+.exp-icon svg{width:40px;height:40px;stroke-width:1.55}
+.exp-title{font-size:28px;line-height:1.17}
+.exp-desc{margin-top:6px;font-size:21px;line-height:1.35;color:#aeb8ce}
+.exp-chev{width:30px;color:var(--accent)}
+.exp-chev svg{width:27px;height:27px;transform:rotate(-90deg)}
+.exp[aria-expanded="true"] .exp-chev{transform:none}
+.exp-more{
+  margin:4px 0 2px;
+  padding:15px 44px 12px 286px;
+  color:#aeb8ce;
+  font-size:16px;
+}
+
+.trust{
+  gap:14px 0;
+  margin:0 0 32px;
+  color:#aeb8ce;
+  font-size:17px;
+}
+.trust li{gap:10px;padding:0 27px;border-right:1px solid var(--line)}
+.trust li:first-child{padding-left:0}
+.trust li:last-child{padding-right:0;border-right:0}
+.trust svg{width:24px;height:24px}
+
+#screen-intro > .btn-primary{
+  min-height:92px;
+  border:1px solid rgba(104,229,255,.66);
+  font-size:25px;
+  letter-spacing:.12em;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.24),
+    0 0 34px rgba(0,195,255,.23),
+    0 16px 44px rgba(185,47,240,.24);
+}
+#screen-intro > .btn-primary svg{width:34px;height:34px}
+
+.disclose{margin-top:32px}
+.disclose > summary{min-height:56px;font-size:14px;letter-spacing:.22em}
+.disclose .body{max-width:720px;margin:0 auto;padding-bottom:20px;text-align:center}
+
+/* Once a test begins, reduce the visual field so the task stays calm and legible. */
+.topbar,
+.screen:not(#screen-intro){max-width:720px;margin-left:auto;margin-right:auto}
+.topbar{padding:0 2px 18px}
+.screen:not(#screen-intro) h1{font-size:clamp(38px,6vw,54px)}
+.screen:not(#screen-intro) h2{font-size:clamp(27px,4vw,34px)}
+.screen:not(#screen-intro) .card,
+.screen:not(#screen-intro) .stim,
+.screen:not(#screen-intro) .reader,
+.screen:not(#screen-intro) .waitbox,
+.screen:not(#screen-intro) .result{
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-color:rgba(145,174,255,.16);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 24px 56px rgba(0,3,14,.35);
+}
+.screen:not(#screen-intro) .btn-primary{min-height:62px}
+
+@media (max-width:900px){
+  .wrap{padding:34px 28px 58px}
+  #screen-intro .hero{min-height:350px}
+  #screen-intro .hero-copy{max-width:64%}
+  .hero-art{width:480px;height:430px;right:-60px;top:-28px}
+  .exp{gap:20px;padding-left:26px;padding-right:25px}
+  .exp-num{width:88px;font-size:44px}
+  .exp-dots{width:76px;background-size:14px 12px}
+  .exp-icon{width:78px;height:78px}
+  .exp-title{font-size:25px}
+  .exp-desc{font-size:18px}
+  .exp-more{padding-left:242px}
+}
+
+@media (max-width:680px){
+  .wrap{padding:22px 18px 48px}
+  #screen-intro .brandmark{margin-bottom:20px;font-size:12px}
+  #screen-intro .hero{min-height:262px;margin-bottom:20px}
+  #screen-intro .hero-copy{max-width:76%;padding-top:4px}
+  #screen-intro h1{font-size:clamp(42px,13vw,62px);line-height:.98;margin-bottom:16px}
+  #screen-intro .lede{max-width:82%;font-size:16px;line-height:1.48}
+  .hero-art{width:270px;height:250px;right:-60px;top:-8px;opacity:.95}
+  .seclabel{font-size:11px;letter-spacing:.28em;margin-bottom:12px}
+  .explist{gap:10px;margin-bottom:20px}
+  .exp{min-height:92px;gap:12px;padding:14px 14px 14px 16px;border-radius:19px}
+  .exp-num{width:48px;font-size:30px}
+  .exp-dots{width:44px;height:16px;margin-top:7px;background-size:8px 7px}
+  .exp-icon{width:52px;height:52px}
+  .exp-icon svg{width:25px;height:25px}
+  .exp-title{font-size:17px}
+  .exp-desc{margin-top:3px;font-size:13px}
+  .exp-chev{width:18px}
+  .exp-chev svg{width:17px;height:17px}
+  .exp-more{padding:10px 16px 9px 78px;font-size:13px}
+  .trust{gap:10px 0;margin-bottom:20px;font-size:12px}
+  .trust li{padding:0 10px;gap:6px}
+  .trust svg{width:17px;height:17px}
+  #screen-intro > .btn-primary{min-height:64px;font-size:15px;letter-spacing:.09em}
+  #screen-intro > .btn-primary svg{width:23px;height:23px}
+  .disclose{margin-top:18px}
+  .disclose > summary{min-height:48px;font-size:11px}
+  .topbar{max-width:none}
+}
+
+@media (max-width:410px){
+  #screen-intro .hero{min-height:246px}
+  #screen-intro .hero-copy{max-width:82%}
+  #screen-intro .lede{max-width:88%}
+  .hero-art{width:230px;height:220px;right:-65px;top:4px}
+  .trust li{padding:0 8px}
+  .trust{font-size:11.3px}
+}
+</style>
+</head>
+
+<body>
+<div class="ambient" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="wrap">
+
+  <header class="topbar" id="topbar" hidden>
+    <span class="brand">The Attention Lab</span>
+    <span class="steps" id="steps" aria-hidden="true"><i></i><i></i><i></i></span>
+    <button class="exit" id="btn-exit" type="button" aria-label="Leave this test and go back to the start">&#10005;</button>
+  </header>
+
+  <main id="app">
+
+  <!-- ============ 1. INTRO ============ -->
+  <section class="screen is-active" id="screen-intro" aria-labelledby="h-intro">
+    <span class="eyebrow brandmark">ForHumanityNow</span>
+
+    <div class="hero">
+      <div class="hero-art" aria-hidden="true">
+        <img src="attention-lab-brain.png" alt="" width="1377" height="1142">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="presentation" focusable="false">
+          <defs>
+            <linearGradient id="gCortex" x1="6%" y1="92%" x2="96%" y2="6%">
+              <stop offset="0%" stop-color="#37C6F0"/>
+              <stop offset="32%" stop-color="#4B7BFF"/>
+              <stop offset="64%" stop-color="#8B5CF6"/>
+              <stop offset="100%" stop-color="#E05CD8"/>
+            </linearGradient>
+            <linearGradient id="gFold" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#4DD6FF"/>
+              <stop offset="46%" stop-color="#7C7CFF"/>
+              <stop offset="78%" stop-color="#D268E8"/>
+              <stop offset="100%" stop-color="#FF9A57"/>
+            </linearGradient>
+            <linearGradient id="gRing" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#4DD6FF" stop-opacity="0"/>
+              <stop offset="48%" stop-color="#8B5CF6" stop-opacity=".7"/>
+              <stop offset="100%" stop-color="#E05CD8" stop-opacity="0"/>
+            </linearGradient>
+            <radialGradient id="gHalo" cx="50%" cy="44%" r="54%">
+              <stop offset="0%" stop-color="#8B5CF6" stop-opacity=".5"/>
+              <stop offset="46%" stop-color="#4B7BFF" stop-opacity=".2"/>
+              <stop offset="100%" stop-color="#E05CD8" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="fSoft" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="3.6"/>
+            </filter>
+            <filter id="fFold" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2.4"/>
+            </filter>
+          </defs>
+
+          <ellipse class="art-glow" cx="100" cy="92" rx="84" ry="76" fill="url(#gHalo)"/>
+
+          <g class="art-float">
+            <ellipse cx="100" cy="94" rx="86" ry="36" transform="rotate(-20 100 94)"
+                     fill="none" stroke="url(#gRing)" stroke-width="1"/>
+
+            <!-- cerebrum, cerebellum and stem in one outline -->
+            <g id="brainOutline">
+              <path d="M168 84
+                       C168 62 156 46 138 38
+                       C126 32 116 30 106 31
+                       C96 25 82 24 70 29
+                       C56 34 46 44 42 56
+                       C31 62 25 74 27 86
+                       C29 97 36 104 45 107
+                       C43 116 46 124 53 128
+                       C48 136 50 146 58 150
+                       C66 154 76 151 80 144
+                       C82 152 86 160 93 162
+                       C100 164 104 157 101 149
+                       C99 143 98 137 100 132
+                       C114 141 134 142 149 133
+                       C162 125 168 110 168 96 Z"
+                    fill="none" stroke="url(#gCortex)" stroke-width="3.2"
+                    stroke-linejoin="round" filter="url(#fSoft)" opacity=".9"/>
+              <path d="M168 84
+                       C168 62 156 46 138 38
+                       C126 32 116 30 106 31
+                       C96 25 82 24 70 29
+                       C56 34 46 44 42 56
+                       C31 62 25 74 27 86
+                       C29 97 36 104 45 107
+                       C43 116 46 124 53 128
+                       C48 136 50 146 58 150
+                       C66 154 76 151 80 144
+                       C82 152 86 160 93 162
+                       C100 164 104 157 101 149
+                       C99 143 98 137 100 132
+                       C114 141 134 142 149 133
+                       C162 125 168 110 168 96 Z"
+                    fill="none" stroke="url(#gCortex)" stroke-width="1.7" stroke-linejoin="round"/>
+            </g>
+
+            <!-- gyri. Drawn twice, once blurred for bloom and once crisp. -->
+            <g fill="none" stroke="url(#gFold)" stroke-linecap="round" stroke-linejoin="round">
+              <g id="folds" stroke-width="1.9">
+                <path d="M106 31 C102 42 108 50 118 52 C129 54 134 62 130 71 C127 79 131 86 139 88"/>
+                <path d="M70 29 C72 40 66 47 56 50 C45 53 40 61 44 69 C47 76 44 83 36 85"/>
+                <path d="M42 56 C52 60 58 68 56 78 C54 88 60 95 70 94"/>
+                <path d="M138 38 C132 48 136 57 146 59 C156 61 161 69 158 77"/>
+                <path d="M45 107 C56 104 66 108 70 117 C74 126 82 130 91 127"/>
+                <path d="M100 132 C104 120 116 115 127 119 C137 123 146 119 149 111"/>
+                <path d="M128 96 C136 100 138 110 132 117"/>
+                <path d="M80 60 C90 62 96 70 94 80 C92 89 97 96 105 97"/>
+                <path d="M53 128 C62 125 70 129 73 137"/>
+              </g>
+              <use href="#folds" filter="url(#fFold)" opacity=".55"/>
+              <use href="#folds" opacity=".95"/>
+            </g>
+
+            <!-- synapse nodes on the fold junctions -->
+            <g fill="#FFFFFF">
+              <circle class="art-spark" cx="106" cy="31" r="2"/>
+              <circle class="art-spark" cx="70" cy="29" r="1.8"/>
+              <circle class="art-spark" cx="139" cy="88" r="2"/>
+              <circle class="art-spark" cx="36" cy="85" r="1.7"/>
+              <circle class="art-spark" cx="70" cy="94" r="1.9"/>
+              <circle class="art-spark" cx="158" cy="77" r="1.7"/>
+              <circle class="art-spark" cx="91" cy="127" r="1.8"/>
+              <circle class="art-spark" cx="149" cy="111" r="1.7"/>
+              <circle class="art-spark" cx="105" cy="97" r="2"/>
+              <circle class="art-spark" cx="73" cy="137" r="1.6"/>
+            </g>
+          </g>
+
+          <g fill="#B9CBFF">
+            <circle class="art-spark" cx="14" cy="40" r="1.3"/>
+            <circle class="art-spark" cx="186" cy="30" r="1.5"/>
+            <circle class="art-spark" cx="178" cy="158" r="1.3"/>
+            <circle class="art-spark" cx="22" cy="170" r="1.4"/>
+            <circle class="art-spark" cx="192" cy="116" r="1.2"/>
+            <circle class="art-spark" cx="8" cy="118" r="1.2"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="hero-copy">
+        <h1 id="h-intro" tabindex="-1" data-focus>The Attention <span class="grad">Lab</span></h1>
+        <p class="lede">You&#8217;ve probably been told phones are wrecking your attention. Test it for yourself.</p>
+      </div>
+    </div>
+
+    <h2 class="seclabel">Three experiments</h2>
+    <ol class="explist">
+      <li>
+        <button class="exp n-blue" type="button" aria-expanded="false" aria-controls="more-1">
+          <span class="exp-num">01<span class="exp-dots" aria-hidden="true"></span></span>
+          <span class="exp-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/>
+            </svg>
+          </span>
+          <span class="exp-body">
+            <span class="exp-title">Switch cost</span>
+            <span class="exp-desc">Change rules mid task</span>
+          </span>
+          <span class="exp-chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg>
+          </span>
+        </button>
+        <p class="exp-more" id="more-1">Two blocks of 24 trials. The first uses one rule, the second switches between two without warning. The gap between them is your switch cost, in milliseconds.</p>
+      </li>
+      <li>
+        <button class="exp n-amber" type="button" aria-expanded="false" aria-controls="more-2">
+          <span class="exp-num">02<span class="exp-dots" aria-hidden="true"></span></span>
+          <span class="exp-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8a6 6 0 0 0-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10.5 20a2 2 0 0 0 3 0"/>
+            </svg>
+          </span>
+          <span class="exp-body">
+            <span class="exp-title">The feed test</span>
+            <span class="exp-desc">Read while notifications arrive</span>
+          </span>
+          <span class="exp-chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg>
+          </span>
+        </button>
+        <p class="exp-more" id="more-2">A 300 word passage with fake notifications sliding in while you read. Open them, dismiss them or ignore them. Four questions afterwards.</p>
+      </li>
+      <li>
+        <button class="exp n-teal" type="button" aria-expanded="false" aria-controls="more-3">
+          <span class="exp-num">03<span class="exp-dots" aria-hidden="true"></span></span>
+          <span class="exp-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>
+            </svg>
+          </span>
+          <span class="exp-body">
+            <span class="exp-title">The waiting room</span>
+            <span class="exp-desc">60 seconds and a skip button</span>
+          </span>
+          <span class="exp-chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg>
+          </span>
+        </button>
+        <p class="exp-more" id="more-3">A bar fills for a minute towards something worth reading. Skip whenever you like. Skipping is recorded but nothing is held back.</p>
+      </li>
+    </ol>
+
+    <ul class="trust">
+      <li><span class="i-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>About 6 minutes</li>
+      <li><span class="i-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></span>No signup</li>
+      <li><span class="i-shield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7.5 3v6c0 4.5-3.2 7.9-7.5 9.3C7.7 19.9 4.5 16.5 4.5 12V6z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg></span>Results stay on this device</li>
+    </ul>
+
+    <button class="btn btn-primary btn-icon" id="btn-start" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9.5 3h5"/><path d="M10.5 3v6.2L5.2 18a2.2 2.2 0 0 0 1.9 3.3h9.8A2.2 2.2 0 0 0 18.8 18l-5.3-8.8V3"/><path d="M7.6 14.6h8.8"/>
+      </svg>
+      Start the experiments
+    </button>
+
+    <details class="disclose" id="privacy">
+      <summary>Privacy details</summary>
+      <div class="body">
+        <p class="small">No server, no analytics, no cookies and no account. Nothing you do here is sent anywhere.</p>
+        <p class="small" style="margin-bottom:0">Your results are held in this page while you use it, and saved on this device only so you can compare against yourself later. You can clear that at the end. Best done on a phone or laptop you can hold still. Sound off is fine.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 2. TEST ONE, SWITCH COST ============ -->
+  <section class="screen" id="screen-t1" aria-labelledby="h-t1">
+
+    <div class="panel is-active" data-panel="t1-intro">
+      <span class="eyebrow cyan">Experiment 01</span>
+      <h1 id="h-t1" tabindex="-1" data-focus>Switch cost</h1>
+      <p class="lede">A number appears. You say whether it is odd or even. That is the whole job for now.</p>
+      <div class="rule" style="margin-bottom:0">
+        <span class="swatch blue" aria-hidden="true"></span>
+        <span class="txt">On a <strong>blue</strong> card, answer <strong>odd</strong> or <strong>even</strong>.</span>
+      </div>
+      <ul class="bullets">
+        <li>Go as fast as you can without getting them wrong.</li>
+        <li>Six practice trials first, with feedback, then the real thing.</li>
+        <li>Tap either button to answer.</li>
+      </ul>
+      <div class="keycue">
+        <span class="keycue-label">Or answer with the keyboard</span>
+        <span class="keycue-row">
+          <kbd>F</kbd><span class="keycue-or">or</span><kbd>&#8592;</kbd>
+          <span>left button</span>
+        </span>
+        <span class="keycue-row">
+          <kbd>J</kbd><span class="keycue-or">or</span><kbd>&#8594;</kbd>
+          <span>right button</span>
+        </span>
+      </div>
+      <div class="stack">
+        <button class="btn btn-primary" data-go="practice-A" type="button">Start practice</button>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="t1-run">
+      <div class="runhead">
+        <span class="eyebrow" id="t1-label" style="margin:0" tabindex="-1" data-focus>Practice</span>
+        <span class="counter" id="t1-count">1 of 6</span>
+      </div>
+      <div class="meter"><i id="t1-meter"></i></div>
+      <div class="stim" id="t1-stim">
+        <span class="cuetag" id="t1-cuetag"></span>
+        <span class="fix" id="t1-fix">&#43;</span>
+        <span class="digit" id="t1-digit" hidden></span>
+      </div>
+      <p class="feedback" id="t1-feedback">&nbsp;</p>
+      <div class="answers is-waiting" id="t1-answers">
+        <button class="ans" id="t1-left" type="button">
+          <span class="main">Odd</span><span class="sub">&nbsp;</span><span class="key">F</span>
+        </button>
+        <button class="ans" id="t1-right" type="button">
+          <span class="main">Even</span><span class="sub">&nbsp;</span><span class="key">J</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="t1-readyA">
+      <span class="eyebrow cyan">Experiment 01</span>
+      <h2 tabindex="-1" data-focus>Practice done</h2>
+      <p class="lede" id="t1-practiceA-note">Now the real block. Twenty four trials, same rule, no feedback.</p>
+      <p class="small">Speed matters here, so settle in before you start. Once it begins it runs straight through.</p>
+      <div class="stack">
+        <button class="btn btn-primary" data-go="block-A" type="button">Start block A</button>
+        <button class="btn btn-quiet" data-go="practice-A" type="button">Practice again</button>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="t1-midA">
+      <span class="eyebrow cyan">Block A complete</span>
+      <h2 tabindex="-1" data-focus>One rule, done</h2>
+      <div class="card">
+        <div class="trace" id="t1-traceA" aria-hidden="true"></div>
+        <div class="legend">
+          <span><b style="background:var(--cyan)"></b>counted</span>
+          <span><b style="background:var(--red)"></b>wrong answer</span>
+          <span><b style="background:var(--muted)"></b>not counted</span>
+        </div>
+        <div class="statrow">
+          <div><span class="k">Median</span><span class="v" id="t1-medA">0 ms</span></div>
+          <div><span class="k">Correct</span><span class="v" id="t1-accA">0%</span></div>
+        </div>
+        <p class="small" id="t1-noteA" style="margin:14px 0 0" hidden></p>
+      </div>
+      <h3 style="margin-top:26px">Now the rule changes</h3>
+      <p>Same buttons, same numbers, but the card colour tells you which question you are answering. It will change without warning.</p>
+      <div class="rule">
+        <span class="swatch blue" aria-hidden="true"></span>
+        <span class="txt">On <strong>blue</strong>, answer <strong>odd</strong> or <strong>even</strong>.</span>
+      </div>
+      <div class="rule" style="margin-bottom:0">
+        <span class="swatch amber" aria-hidden="true"></span>
+        <span class="txt">On <strong>amber</strong>, answer <strong>lower than 5</strong> or <strong>higher than 5</strong>.</span>
+      </div>
+      <p class="small" style="margin-top:14px">The buttons stay in the same places the whole time. Only their labels change.</p>
+      <div class="stack">
+        <button class="btn btn-primary" data-go="practice-B" type="button">Start practice</button>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="t1-readyB">
+      <span class="eyebrow cyan">Experiment 01</span>
+      <h2 tabindex="-1" data-focus>Practice done</h2>
+      <p class="lede" id="t1-practiceB-note">Block B is twenty four trials with the rule switching. Same instruction as before: fast, but not sloppy.</p>
+      <div class="stack">
+        <button class="btn btn-primary" data-go="block-B" type="button">Start block B</button>
+        <button class="btn btn-quiet" data-go="practice-B" type="button">Practice again</button>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="t1-doneB">
+      <span class="eyebrow cyan">Block B complete</span>
+      <h2 tabindex="-1" data-focus>Both blocks done</h2>
+      <div class="card">
+        <div class="trace" id="t1-traceB" aria-hidden="true"></div>
+        <div class="legend">
+          <span><b style="background:var(--cyan)"></b>counted</span>
+          <span><b style="background:var(--red)"></b>wrong answer</span>
+          <span><b style="background:var(--muted)"></b>not counted</span>
+        </div>
+        <div class="statrow">
+          <div><span class="k">Median</span><span class="v" id="t1-medB">0 ms</span></div>
+          <div><span class="k">Correct</span><span class="v" id="t1-accB">0%</span></div>
+        </div>
+        <p class="small" id="t1-noteB" style="margin:14px 0 0" hidden></p>
+      </div>
+      <p class="small" style="margin-top:16px">The number that matters is the gap between the two blocks. You will see it at the end.</p>
+      <div class="stack">
+        <button class="btn btn-primary" id="btn-to-t2" type="button">Next experiment</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. TEST TWO, THE FEED TEST ============ -->
+  <section class="screen" id="screen-t2" aria-labelledby="h-t2">
+
+    <div class="panel is-active" data-panel="t2-intro">
+      <span class="eyebrow cyan">Experiment 02</span>
+      <h1 id="h-t2" tabindex="-1" data-focus>The feed test</h1>
+      <p class="lede">Read a short passage. Notifications will arrive while you read.</p>
+      <div class="card">
+        <p class="small" style="margin-bottom:10px">They are fake. They come from this page, nothing is running in the background and no message exists behind any of them.</p>
+        <p class="small" style="margin-bottom:0">You can open them, dismiss them with the small x, or ignore them completely. All three are fine. Afterwards there are four questions about the passage.</p>
+      </div>
+      <p class="tiny" style="margin-top:14px">This one is a demonstration rather than a proper measurement. The passage and the questions have not been tested on anyone, so treat the score as a talking point.</p>
+      <div class="stack">
+        <button class="btn btn-primary" id="btn-t2-start" type="button">Start reading</button>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="t2-read">
+      <div class="runhead">
+        <span class="eyebrow" style="margin:0">Reading</span>
+        <span class="counter">300 words</span>
+      </div>
+      <div class="reader-wrap">
+        <div class="reader" id="t2-reader" tabindex="0" data-focus role="region" aria-label="Passage to read">
+          <h3>The record on the side of the spacecraft</h3>
+          <p>In 1977, NASA launched two spacecraft called Voyager 1 and Voyager 2. Their job was to photograph the outer planets and then keep going. Nobody expected them back.</p>
+          <p>Bolted to the side of each one is a gold plated copper disc about the size of a dinner plate. It is a phonograph record, the kind you play with a needle, chosen because a needle and a groove will still work long after every computer format has been forgotten. A committee led by the astronomer Carl Sagan decided what went on it.</p>
+          <p>The record carries greetings in 55 languages, from ancient Akkadian to modern Mandarin. It carries 115 images encoded as sound, including a photograph of a person eating and a diagram of human anatomy. It carries thunder, a heartbeat, whale song, and a mother speaking to her child.</p>
+          <p>Then there is the music, about 90 minutes of it, and the choices are stranger than you might expect. Bach sits next to a Navajo night chant. Javanese gamelan sits next to Chuck Berry playing Johnny B. Goode. The committee argued for weeks about that last one, because some members thought rock and roll was too juvenile to represent an entire planet.</p>
+          <p>Etched into the cover are instructions for playing the disc, drawn as pictures, since there is no written language you could safely assume a finder would know. A small patch of uranium 238 sits beside them and acts as a clock. Anyone who picks it up can measure how much has decayed and work out how long the record has been travelling.</p>
+          <p>Voyager 1 is now beyond the edge of the solar system. In roughly 40,000 years it will pass within about 1.7 light years of a faint star in the constellation Camelopardalis. The disc should still be playable in a billion years.</p>
+        </div>
+        <div class="notif-host" id="t2-notifs"></div>
+        <div id="t2-decoy"></div>
+      </div>
+      <div class="stack" style="margin-top:16px">
+        <button class="btn btn-primary" id="btn-t2-done" type="button">Done reading</button>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="t2-quiz">
+      <div class="qhead">
+        <span class="eyebrow" style="margin:0">Comprehension</span>
+        <span class="counter" id="t2-qcount">1 of 4</span>
+      </div>
+      <div class="meter"><i id="t2-meter"></i></div>
+      <h2 id="t2-question" tabindex="-1" data-focus style="font-size:21px">Question</h2>
+      <div class="opts" id="t2-opts"></div>
+    </div>
+
+    <div class="panel" data-panel="t2-done">
+      <span class="eyebrow cyan">Experiment 02 complete</span>
+      <h2 tabindex="-1" data-focus>That is the feed test</h2>
+      <div class="card">
+        <div class="statrow" style="margin-top:0">
+          <div><span class="k">Score</span><span class="v" id="t2-score">0 of 4</span></div>
+          <div><span class="k">Opened</span><span class="v" id="t2-taps">0</span></div>
+          <div><span class="k">Reading</span><span class="v" id="t2-time">0:00</span></div>
+        </div>
+      </div>
+      <p class="small" style="margin-top:16px">One more, and it is the shortest one to explain and the hardest one to sit through.</p>
+      <div class="stack">
+        <button class="btn btn-primary" id="btn-to-t3" type="button">Next experiment</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. TEST THREE, THE WAITING ROOM ============ -->
+  <section class="screen" id="screen-t3" aria-labelledby="h-t3">
+
+    <div class="panel is-active" data-panel="t3-intro">
+      <span class="eyebrow cyan">Experiment 03</span>
+      <h1 id="h-t3" tabindex="-1" data-focus>The waiting room</h1>
+      <p class="lede">A bar fills for sixty seconds. At the end there is something genuinely worth reading.</p>
+      <div class="card">
+        <p class="small" style="margin-bottom:0">There is a skip button and it works the whole way through. Skipping takes you to the same thing at the end. Nothing is held back and nothing is held against you. We just record the second you pressed it.</p>
+      </div>
+      <p class="small" style="margin-top:14px">There is nothing to do while you wait. That is the point of the test.</p>
+      <div class="stack">
+        <button class="btn btn-primary" id="btn-t3-start" type="button">Start the wait</button>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="t3-wait">
+      <span class="eyebrow" id="t3-eyebrow">Waiting</span>
+      <h2 tabindex="-1" data-focus style="font-size:22px">Something worth reading is loading</h2>
+      <div class="waitbox">
+        <span class="waitpct" id="t3-pct">0%</span>
+        <div class="waitbar"><i id="t3-fill"></i></div>
+        <p class="tiny" id="t3-hint" style="margin:0">Sixty seconds in total</p>
+      </div>
+      <div class="stack">
+        <button class="btn btn-ghost" id="btn-t3-skip" type="button">Skip</button>
+      </div>
+      <p class="tiny" style="text-align:center;margin-top:12px">No penalty, nothing held back</p>
+    </div>
+
+    <div class="panel" data-panel="t3-payoff">
+      <span class="eyebrow amber" id="t3-payoff-eyebrow">The result</span>
+      <h2 tabindex="-1" data-focus>The door study</h2>
+      <p>In 1998, two researchers ran an experiment on a university campus. Someone holding a map stopped a stranger to ask for directions. While the stranger was talking, two workers carrying a large door walked between them.</p>
+      <p>Behind the door, the person with the map swapped places with a completely different person. Different height, different clothes, different voice.</p>
+      <p><strong>Fewer than half of the strangers noticed.</strong></p>
+      <p>It is called change blindness. Your attention is not a camera recording whatever is in front of you. It is closer to a narrow beam that lights up the thing you are working on and leaves the rest dark.</p>
+      <p>That is not a flaw. A brain that recorded everything equally would be useless, because you would never be able to find anything in it again. Which means the question was never whether your attention has limits. It has limits. The question is what you point it at.</p>
+      <p class="tiny">Simons, D. J. and Levin, D. T. (1998). Failure to detect changes to people during a real world interaction.</p>
+      <div class="stack">
+        <button class="btn btn-primary" id="btn-to-results" type="button">See your results</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. RESULTS ============ -->
+  <section class="screen" id="screen-results" aria-labelledby="h-res">
+    <span class="eyebrow amber">Your data</span>
+    <h1 id="h-res" tabindex="-1" data-focus>Three numbers</h1>
+    <p class="lede">These came from you, about six minutes ago, on this device.</p>
+
+    <div class="result n-blue" style="margin-top:24px">
+      <span class="eyebrow">01 Switch cost</span>
+      <span class="big is-cost" id="r-cost">0</span>
+      <span class="unit" id="r-cost-unit">milliseconds per switch</span>
+      <p class="interp" id="r-cost-text"></p>
+      <div class="statrow">
+        <div><span class="k">Block A</span><span class="v" id="r-medA">0 ms</span></div>
+        <div><span class="k">Block B</span><span class="v" id="r-medB">0 ms</span></div>
+      </div>
+    </div>
+
+    <div class="result n-amber">
+      <span class="eyebrow">02 Feed test</span>
+      <span class="big" id="r-score">0</span>
+      <span class="unit">out of 4 questions right</span>
+      <p class="interp" id="r-score-text"></p>
+      <div class="statrow">
+        <div><span class="k">Opened</span><span class="v" id="r-taps">0</span></div>
+        <div><span class="k">Reading</span><span class="v" id="r-time">0:00</span></div>
+      </div>
+    </div>
+
+    <div class="result n-teal">
+      <span class="eyebrow">03 Waiting room</span>
+      <span class="big is-teal" id="r-wait">0</span>
+      <span class="unit" id="r-wait-unit">seconds waited out of 60</span>
+      <p class="interp" id="r-wait-text"></p>
+    </div>
+
+    <div class="notice">
+      <h3>Before you read anything into it</h3>
+      <ul>
+        <li>This is not a diagnosis. It cannot be. Six minutes on a web page is a demonstration, not an assessment, and nothing here can tell you whether something is wrong with you.</li>
+        <li>Everyone shows a switch cost. Adults show it, pilots show it, the researchers who study it show it. It is a normal feature of how brains work, not damage.</li>
+        <li>Block A always runs before block B, so part of the gap could be tiredness or practice rather than switching. That is a real weakness in the design and worth arguing about in class.</li>
+        <li>The only comparison worth anything is against yourself later, in similar conditions. Comparing your number to a friend's number mostly measures who was holding their phone more steadily.</li>
+      </ul>
+    </div>
+
+    <div class="compare" id="r-compare" hidden></div>
+
+    <div class="card flat" style="margin-top:12px">
+      <p class="small" style="margin:0"><strong>Run this again in two weeks.</strong> Same time of day, same device, somewhere equally quiet. If the numbers move, that is the only result here you can actually learn something from.</p>
+    </div>
+
+    <div class="stack">
+      <button class="btn btn-primary" id="btn-to-next" type="button">What to do with this</button>
+    </div>
+  </section>
+
+  <!-- ============ 6. WHAT NOW ============ -->
+  <section class="screen" id="screen-next" aria-labelledby="h-next">
+    <span class="eyebrow amber">What now</span>
+    <h1 id="h-next" tabindex="-1" data-focus>Three things to try</h1>
+    <p class="lede">All three take an ordinary week. None of them ask you to give up your phone.</p>
+
+    <div class="card" style="margin-top:24px">
+      <div class="next-item">
+        <h3>Count before you change anything</h3>
+        <p>For one full day, mark a tally on paper every time you pick up your phone without deciding to. Use paper, not an app. Most people are wrong about their own number by a factor of three, and you cannot evaluate a claim about your attention without knowing yours.</p>
+      </div>
+      <div class="next-item">
+        <h3>Run one Pomodoro</h3>
+        <p>Twenty five minutes on a single task, then a five minute break. Use a kitchen timer or anything that is not your phone. The break should be something you enjoy that does not involve learning anything new.</p>
+      </div>
+      <div class="next-item">
+        <h3>Bring this question to class</h3>
+        <p>Everyone in the room has a switch cost. So what does the popcorn brain claim actually predict that a normal brain would not? If nobody can answer that, the claim might be describing something real and still be useless.</p>
+      </div>
+    </div>
+
+    <div class="stack">
+      <button class="btn btn-primary" id="btn-restart" type="button">Run it again</button>
+      <button class="btn btn-quiet" id="btn-clear" type="button">Clear saved results from this device</button>
+    </div>
+    <p class="tiny" id="clear-note" style="text-align:center;margin-top:8px" hidden>Cleared.</p>
+  </section>
+
+  </main>
+</div>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="dlg-title" hidden>
+  <div class="dialog">
+    <h3 id="dlg-title">Leave this test?</h3>
+    <p class="small">You will go back to the start and this run will not be saved.</p>
+    <div class="stack" style="margin-top:18px">
+      <button class="btn btn-ghost" id="dlg-yes" type="button">Leave</button>
+      <button class="btn btn-primary" id="dlg-no" type="button">Keep going</button>
+    </div>
+  </div>
+</div>
+
+<p class="sr-only" id="live" role="status" aria-live="polite"></p>
+
+<script>
+/* ============================================================
+   PARENT PAGE LISTENER
+   Paste this into the Wix page that holds the iframe so the frame
+   can size itself. Give the iframe an id of attentionLab.
+
+   window.addEventListener('message', function (e) {
+     var frame = document.getElementById('attentionLab');
+     if (!e.data || !frame) return;
+     if (e.data.type === 'attentionLabHeight') {
+       frame.style.height = e.data.height + 'px';
+     }
+     // Optional. Sent when the leave confirmation opens, so a reader who has
+     // scrolled past the frame gets shown the dialog.
+     if (e.data.type === 'attentionLabScrollIntoView') {
+       frame.scrollIntoView({ block: 'center', behavior: 'smooth' });
+     }
+   });
+   ============================================================ */
+
+(function () {
+  'use strict';
+
+  /* ==========================================================
+     TUNABLE VALUES
+     Everything worth adjusting lives in this one object.
+     ========================================================== */
+  var CFG = {
+    TRIALS_PER_BLOCK: 24,      // real trials in block A and block B
+    PRACTICE_TRIALS: 6,        // untimed practice trials before each block
+    RT_MIN_MS: 200,            // faster than this is treated as a slip
+    RT_MAX_MS: 4000,           // slower than this is treated as a lapse
+    DROP_FIRST_N: 1,           // trials dropped from the start of each block
+    EXCLUDE_ERRORS: true,      // leave wrong answers out of the median
+    MIN_USABLE_TRIALS: 5,      // fewer than this and no median is reported
+    ITI_MS: 450,               // blank gap between trials
+    FEEDBACK_MS: 700,          // how long practice feedback stays up
+    TRIAL_TIMEOUT_MS: 6000,    // auto advance if nobody answers
+    NOTIF_MIN_MS: 8000,        // shortest gap between notifications
+    NOTIF_MAX_MS: 20000,       // longest gap between notifications
+    NOTIF_LIFE_MS: 9000,       // an ignored notification slides away after this
+    NOTIF_MAX_LIVE: 2,         // most notifications on screen at once
+    WAIT_TOTAL_MS: 60000,      // length of the waiting room
+    COUNTUP_MS: 800,           // result number count up
+    COST_TYPICAL_LOW: 100,     // low edge of the usual switch cost band
+    COST_TYPICAL_HIGH: 500     // high edge of the usual switch cost band
+  };
+
+  var DIGITS = [1, 2, 3, 4, 6, 7, 8, 9]; // 5 is left out, it has no higher or lower answer
+
+  /* ---------- small helpers ---------- */
+
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $$(sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  }
+  function on(el, ev, fn, opts) { if (el) el.addEventListener(ev, fn, opts); }
+
+  var reduceMotion = false;
+  try {
+    reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (e) { reduceMotion = false; }
+
+  function announce(msg) {
+    var live = $('#live');
+    if (live) live.textContent = msg;
+  }
+
+  function median(list) {
+    if (!list.length) return null;
+    var a = list.slice().sort(function (x, y) { return x - y; });
+    var mid = Math.floor(a.length / 2);
+    return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
+  }
+
+  function clearTimers(arr) {
+    while (arr.length) clearTimeout(arr.pop());
+  }
+
+  function fmtClock(ms) {
+    var s = Math.max(0, Math.round(ms / 1000));
+    var m = Math.floor(s / 60);
+    var r = s % 60;
+    return m + ':' + (r < 10 ? '0' : '') + r;
+  }
+
+  /* ---------- iframe height reporting ---------- */
+
+  function postHeight() {
+    var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'attentionLabHeight', height: h }, '*');
+      }
+    } catch (e) { /* cross origin parents can refuse, that is fine */ }
+  }
+
+  function postHeightSoon() {
+    postHeight();
+    setTimeout(postHeight, 60);
+    setTimeout(postHeight, 320);
+  }
+
+  /* ---------- screens ---------- */
+
+  var SCREENS = ['intro', 't1', 't2', 't3', 'results', 'next'];
+  var current = 'intro';
+
+  function show(id) {
+    current = id;
+    SCREENS.forEach(function (s) {
+      var el = document.getElementById('screen-' + s);
+      if (el) el.classList.toggle('is-active', s === id);
+    });
+    updateTopbar();
+    focusScreen();
+    try { window.scrollTo(0, 0); } catch (e) { /* no op */ }
+    postHeightSoon();
+  }
+
+  function focusScreen() {
+    var active = $('#screen-' + current);
+    if (!active) return;
+    var panel = $('.panel.is-active', active) || active;
+    var target = panel.querySelector('[data-focus]');
+    if (target) {
+      try { target.focus({ preventScroll: true }); } catch (e) { target.focus(); }
+    }
+  }
+
+  function panel(screenId, name) {
+    var root = $('#screen-' + screenId);
+    if (!root) return;
+    $$('.panel', root).forEach(function (p) {
+      p.classList.toggle('is-active', p.getAttribute('data-panel') === name);
+    });
+    focusScreen();
+    postHeightSoon();
+  }
+
+  function updateTopbar() {
+    var bar = $('#topbar');
+    var inTest = (current === 't1' || current === 't2' || current === 't3');
+    bar.hidden = (current === 'intro');
+    $('#btn-exit').style.visibility = inTest ? 'visible' : 'hidden';
+    var order = { t1: 0, t2: 1, t3: 2 };
+    var dots = $$('#steps i');
+    var idx = order.hasOwnProperty(current) ? order[current] : 3;
+    dots.forEach(function (d, i) {
+      d.classList.toggle('is-now', i === idx);
+      d.classList.toggle('is-done', i < idx);
+    });
+  }
+
+  /* ==========================================================
+     EXPERIMENT 01, SWITCH COST
+     ========================================================== */
+
+  var T1 = {
+    phase: null,
+    trials: [],
+    idx: 0,
+    armed: false,
+    tStart: 0,
+    timeoutId: null,
+    itiId: null,
+    stepId: null,
+    ignoreClickUntil: 0,
+    A: [],
+    B: []
+  };
+
+  function makeTrials(block, n) {
+    var out = [];
+    var lastCue = null;
+    var run = 0;
+    for (var i = 0; i < n; i++) {
+      var cue = 'blue';
+      if (block === 'B') {
+        cue = Math.random() < 0.5 ? 'blue' : 'amber';
+        if (cue === lastCue) { run++; } else { run = 1; }
+        // Stop long runs of the same rule so the switches stay unpredictable.
+        if (run > 3) { cue = (cue === 'blue') ? 'amber' : 'blue'; run = 1; }
+      }
+      lastCue = cue;
+      out.push({
+        digit: DIGITS[Math.floor(Math.random() * DIGITS.length)],
+        cue: cue
+      });
+    }
+    return out;
+  }
+
+  function correctSide(t) {
+    if (t.cue === 'blue') return (t.digit % 2 === 1) ? 'left' : 'right';
+    return (t.digit < 5) ? 'left' : 'right';
+  }
+
+  function setLabels(cue) {
+    var l = $('#t1-left');
+    var r = $('#t1-right');
+    if (cue === 'blue') {
+      l.querySelector('.main').textContent = 'Odd';
+      r.querySelector('.main').textContent = 'Even';
+      l.querySelector('.sub').innerHTML = '&nbsp;';
+      r.querySelector('.sub').innerHTML = '&nbsp;';
+      l.setAttribute('aria-label', 'Odd');
+      r.setAttribute('aria-label', 'Even');
+      $('#t1-cuetag').textContent = 'Odd or even';
+    } else {
+      l.querySelector('.main').textContent = 'Lower';
+      r.querySelector('.main').textContent = 'Higher';
+      l.querySelector('.sub').textContent = 'than 5';
+      r.querySelector('.sub').textContent = 'than 5';
+      l.setAttribute('aria-label', 'Lower than 5');
+      r.setAttribute('aria-label', 'Higher than 5');
+      $('#t1-cuetag').textContent = 'Higher or lower than 5';
+    }
+  }
+
+  function t1Reset() {
+    T1.armed = false;
+    clearTimeout(T1.timeoutId);
+    clearTimeout(T1.itiId);
+    clearTimeout(T1.stepId);
+    T1.timeoutId = T1.itiId = T1.stepId = null;
+  }
+
+  function t1Begin(phase) {
+    t1Reset();
+    T1.phase = phase;
+    var block = (phase.indexOf('A') > -1) ? 'A' : 'B';
+    var practice = (phase.indexOf('practice') === 0);
+    var n = practice ? CFG.PRACTICE_TRIALS : CFG.TRIALS_PER_BLOCK;
+
+    T1.trials = makeTrials(block, n);
+    T1.idx = 0;
+    if (phase === 'block-A') T1.A = [];
+    if (phase === 'block-B') T1.B = [];
+
+    $('#t1-label').textContent = practice ? ('Practice, block ' + block) : ('Block ' + block);
+    setLabels('blue');
+    panel('t1', 't1-run');
+    announce(practice
+      ? ('Practice starting. ' + n + ' trials.')
+      : ('Block ' + block + ' starting. ' + n + ' trials.'));
+    t1NextTrial();
+  }
+
+  function t1NextTrial() {
+    if (T1.idx >= T1.trials.length) { t1EndPhase(); return; }
+
+    var t = T1.trials[T1.idx];
+    var stim = $('#t1-stim');
+
+    // Blank the card and dim the buttons for the gap between trials.
+    stim.className = 'stim';
+    $('#t1-digit').hidden = true;
+    $('#t1-fix').hidden = false;
+    $('#t1-cuetag').textContent = '';
+    $('#t1-answers').classList.add('is-waiting');
+    $('#t1-feedback').innerHTML = '&nbsp;';
+    $('#t1-feedback').className = 'feedback';
+
+    $('#t1-count').textContent = (T1.idx + 1) + ' of ' + T1.trials.length;
+    $('#t1-meter').style.width = ((T1.idx / T1.trials.length) * 100) + '%';
+
+    if (T1.idx > 0 && T1.idx % 6 === 0) {
+      announce('Trial ' + (T1.idx + 1) + ' of ' + T1.trials.length);
+    }
+
+    T1.armed = false;
+    T1.itiId = setTimeout(function () { t1Paint(t); }, CFG.ITI_MS);
+  }
+
+  /* ----------------------------------------------------------
+     REACTION TIME MEASUREMENT
+     This is the part most likely to need adjusting later, so it is
+     spelled out.
+
+     1. We write the digit and the cue colour into the DOM. At this
+        moment nothing is on screen yet. Starting the clock here would
+        count one frame of browser work as if it were human thinking
+        time, roughly 8 to 16 ms of free error.
+     2. A requestAnimationFrame callback runs just before the browser
+        paints the next frame. So the first callback is still too early.
+     3. Nesting a second requestAnimationFrame lands immediately after
+        the frame carrying the digit has been painted. That is the first
+        instant a person could possibly see the stimulus, so that is
+        where the clock starts.
+     4. The stop time comes from the input event itself where possible.
+        Pointer and keyboard events carry a timeStamp on the same clock
+        as performance.now(), recorded closer to the hardware than any
+        JavaScript handler can run. We sanity check it and fall back to
+        performance.now() if it looks wrong.
+     5. The stimulus card has transition:none in the CSS. A colour
+        transition there would smear the cue across several frames.
+     ---------------------------------------------------------- */
+
+  function t1Paint(t) {
+    var stim = $('#t1-stim');
+    var digit = $('#t1-digit');
+
+    $('#t1-fix').hidden = true;
+    digit.textContent = String(t.digit);
+    digit.hidden = false;
+    setLabels(t.cue);
+    stim.className = 'stim cue-' + t.cue;
+    $('#t1-answers').classList.remove('is-waiting');
+
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        T1.tStart = performance.now();
+        T1.armed = true;
+        T1.timeoutId = setTimeout(function () { t1Respond(null, null); }, CFG.TRIAL_TIMEOUT_MS);
+      });
+    });
+  }
+
+  function stopTime(evt) {
+    if (evt && typeof evt.timeStamp === 'number' && isFinite(evt.timeStamp)) {
+      var candidate = evt.timeStamp - T1.tStart;
+      if (candidate >= 0 && candidate < 60000) return evt.timeStamp;
+    }
+    return performance.now();
+  }
+
+  function t1Respond(side, evt) {
+    if (!T1.armed) return;
+    T1.armed = false;
+    clearTimeout(T1.timeoutId);
+
+    var t = T1.trials[T1.idx];
+    var practice = (T1.phase.indexOf('practice') === 0);
+    var rt = null;
+    var correct = false;
+
+    if (side) {
+      rt = stopTime(evt) - T1.tStart;
+      correct = (side === correctSide(t));
+    }
+
+    if (!practice) {
+      var store = (T1.phase === 'block-A') ? T1.A : T1.B;
+      store.push({ rt: rt, correct: correct, cue: t.cue, digit: t.digit });
+    }
+
+    T1.idx++;
+
+    if (practice) {
+      var fb = $('#t1-feedback');
+      if (!side) {
+        fb.textContent = 'No answer that time';
+        fb.className = 'feedback no';
+      } else if (correct) {
+        fb.textContent = 'Correct, ' + Math.round(rt) + ' ms';
+        fb.className = 'feedback ok';
+      } else {
+        fb.textContent = (t.cue === 'blue')
+          ? 'Blue means odd or even'
+          : 'Amber means higher or lower than 5';
+        fb.className = 'feedback no';
+      }
+      T1.stepId = setTimeout(t1NextTrial, CFG.FEEDBACK_MS);
+    } else {
+      T1.stepId = setTimeout(t1NextTrial, 0);
+    }
+  }
+
+  function t1EndPhase() {
+    t1Reset();
+    $('#t1-meter').style.width = '100%';
+    var phase = T1.phase;
+
+    if (phase === 'practice-A') {
+      panel('t1', 't1-readyA');
+      announce('Practice complete.');
+    } else if (phase === 'block-A') {
+      var a = summarise(T1.A);
+      renderTrace('#t1-traceA', T1.A);
+      $('#t1-medA').textContent = a.median === null ? 'n/a' : (Math.round(a.median) + ' ms');
+      $('#t1-accA').textContent = Math.round(a.accuracy * 100) + '%';
+      setNote('#t1-noteA', medianNote(a));
+      panel('t1', 't1-midA');
+      announce('Block A complete.');
+    } else if (phase === 'practice-B') {
+      panel('t1', 't1-readyB');
+      announce('Practice complete.');
+    } else if (phase === 'block-B') {
+      var b = summarise(T1.B);
+      renderTrace('#t1-traceB', T1.B);
+      $('#t1-medB').textContent = b.median === null ? 'n/a' : (Math.round(b.median) + ' ms');
+      $('#t1-accB').textContent = Math.round(b.accuracy * 100) + '%';
+      setNote('#t1-noteB', medianNote(b));
+      panel('t1', 't1-doneB');
+      announce('Block B complete.');
+    }
+  }
+
+  function setNote(sel, text) {
+    var el = $(sel);
+    if (!el) return;
+    el.textContent = text;
+    el.hidden = !text;
+  }
+
+  function summarise(rows) {
+    var used = [];
+    var nCorrect = 0;
+    rows.forEach(function (r, i) {
+      if (r.correct) nCorrect++;
+      r.keep = (
+        i >= CFG.DROP_FIRST_N &&
+        r.rt !== null &&
+        r.rt >= CFG.RT_MIN_MS &&
+        r.rt <= CFG.RT_MAX_MS &&
+        (!CFG.EXCLUDE_ERRORS || r.correct)
+      );
+      if (r.keep) used.push(r.rt);
+    });
+    return {
+      median: used.length >= CFG.MIN_USABLE_TRIALS ? median(used) : null,
+      kept: used.length,
+      total: rows.length,
+      accuracy: rows.length ? (nCorrect / rows.length) : 0
+    };
+  }
+
+  function renderTrace(sel, rows) {
+    var host = $(sel);
+    if (!host) return;
+    host.innerHTML = '';
+    if (!rows.length) return;
+
+    // Scale to the tallest bar in this block rather than to RT_MAX_MS.
+    // Real answers land near 600 ms, so scaling to the 4000 ms ceiling
+    // would squash every block into a flat line along the bottom.
+    var values = rows.map(function (r) {
+      return (r.rt === null) ? CFG.RT_MAX_MS : Math.min(r.rt, CFG.RT_MAX_MS);
+    });
+    var top = Math.max.apply(null, values.concat([300]));
+
+    rows.forEach(function (r, i) {
+      var bar = document.createElement('i');
+      bar.style.height = Math.max(8, Math.round((values[i] / top) * 100)) + '%';
+      if (r.rt === null) bar.className = 'is-drop';   // nobody answered at all
+      else if (!r.correct) bar.className = 'is-err';
+      else if (!r.keep) bar.className = 'is-drop';
+      host.appendChild(bar);
+    });
+  }
+
+  // Says why a block produced no median, so nobody is left staring at n/a.
+  function medianNote(stats) {
+    if (stats.median !== null) return '';
+    if (!stats.total) return '';
+    return 'No median from this block. Only ' + stats.kept + ' of ' + stats.total +
+      ' trials were usable. Answers faster than ' + CFG.RT_MIN_MS + ' ms, slower than ' +
+      CFG.RT_MAX_MS + ' ms, or with the wrong button are left out, which is what keeps the ' +
+      'number honest. Running the block again usually sorts it.';
+  }
+
+  /* ---------- test one input wiring ---------- */
+
+  function wireAnswer(el, side) {
+    on(el, 'pointerdown', function (e) {
+      if (e.button && e.button !== 0) return;
+      if (!T1.armed) return;
+      e.preventDefault();
+      T1.ignoreClickUntil = performance.now() + 800;
+      t1Respond(side, e);
+    });
+    on(el, 'click', function (e) {
+      // A click follows every pointerdown. Skip the echo, keep the
+      // keyboard and screen reader activations that arrive click only.
+      if (performance.now() < T1.ignoreClickUntil) return;
+      if (!T1.armed) return;
+      t1Respond(side, e);
+    });
+  }
+
+  /* ==========================================================
+     EXPERIMENT 02, THE FEED TEST
+     ========================================================== */
+
+  var NOTIFS = [
+    ['Messages', '3 new messages in the group chat'],
+    ['Photos', 'Your memories from 2 years ago are ready'],
+    ['Delivery', 'Your parcel is two stops away'],
+    ['Battery', 'Battery at 20 percent'],
+    ['Calendar', 'Study group starts in 15 minutes'],
+    ['Weather', 'Rain expected in about 30 minutes'],
+    ['Reminders', 'You have 4 things due tomorrow'],
+    ['Music', 'A new release from someone you follow'],
+    ['Wallet', 'Your balance was updated'],
+    ['Messages', 'Someone replied to you']
+  ];
+
+  var QUIZ = [
+    {
+      q: 'What year were the two Voyager spacecraft launched?',
+      opts: ['1969', '1977', '1985', '1991'],
+      answer: '1977'
+    },
+    {
+      q: 'How many languages are in the greetings on the record?',
+      opts: ['12', '27', '55', '200'],
+      answer: '55'
+    },
+    {
+      q: 'Which rock and roll song is on the record?',
+      opts: ['Blue Suede Shoes', 'Great Balls of Fire', 'Johnny B. Goode', 'Tutti Frutti'],
+      answer: 'Johnny B. Goode'
+    },
+    {
+      q: 'What is the patch of uranium 238 on the cover for?',
+      opts: [
+        'It powers the record player',
+        'It acts as a clock, so a finder can work out how long the record has travelled',
+        'It points back towards Earth',
+        'It shields the disc from radiation'
+      ],
+      answer: 'It acts as a clock, so a finder can work out how long the record has travelled'
+    }
+  ];
+
+  var T2 = {
+    startedAt: 0,
+    readMs: 0,
+    taps: 0,
+    dismissed: 0,
+    qIdx: 0,
+    score: 0,
+    order: [],
+    timers: [],
+    live: 0,
+    seq: 0,
+    lastPick: -1
+  };
+
+  function shuffle(list) {
+    var a = list.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function t2Reset() {
+    clearTimers(T2.timers);
+    T2.live = 0;
+    var host = $('#t2-notifs');
+    if (host) host.innerHTML = '';
+    var decoy = $('#t2-decoy');
+    if (decoy) decoy.innerHTML = '';
+  }
+
+  function t2Start() {
+    t2Reset();
+    T2.taps = 0;
+    T2.dismissed = 0;
+    T2.score = 0;
+    T2.qIdx = 0;
+    T2.order = QUIZ.map(function (q) {
+      return { q: q.q, opts: shuffle(q.opts), answer: q.answer };
+    });
+    T2.startedAt = performance.now();
+    panel('t2', 't2-read');
+    var reader = $('#t2-reader');
+    if (reader) reader.scrollTop = 0;
+    t2Schedule();
+    announce('Reading started. Notifications will arrive.');
+  }
+
+  function t2Schedule() {
+    var gap = CFG.NOTIF_MIN_MS + Math.random() * (CFG.NOTIF_MAX_MS - CFG.NOTIF_MIN_MS);
+    T2.timers.push(setTimeout(function () {
+      if (current !== 't2') return;   // never let the chain outlive the test
+      t2Fire();
+      t2Schedule();
+    }, gap));
+  }
+
+  function t2Fire() {
+    if (current !== 't2') return;
+    if (T2.live >= CFG.NOTIF_MAX_LIVE) return;
+
+    // Never repeat the one that just showed. Two identical cards stacked
+    // reads as a bug rather than as a busy phone.
+    var n = NOTIFS.length;
+    var i = Math.floor(Math.random() * n);
+    if (i === T2.lastPick) i = (i + 1 + Math.floor(Math.random() * (n - 1))) % n;
+    T2.lastPick = i;
+    var pick = NOTIFS[i];
+    var host = $('#t2-notifs');
+    if (!host) return;
+
+    var id = 'n' + (++T2.seq);
+    var wrap = document.createElement('div');
+    wrap.className = 'notif';
+    wrap.id = id;
+
+    var openBtn = document.createElement('button');
+    openBtn.type = 'button';
+    openBtn.className = 'notif-open';
+    openBtn.setAttribute('aria-label', 'Open notification from ' + pick[0] + '. ' + pick[1]);
+    var app = document.createElement('span');
+    app.className = 'notif-app';
+    app.textContent = pick[0];
+    var msg = document.createElement('span');
+    msg.className = 'notif-msg';
+    msg.textContent = pick[1];
+    openBtn.appendChild(app);
+    openBtn.appendChild(msg);
+
+    var xBtn = document.createElement('button');
+    xBtn.type = 'button';
+    xBtn.className = 'notif-x';
+    xBtn.setAttribute('aria-label', 'Dismiss notification from ' + pick[0]);
+    xBtn.innerHTML = '&#10005;';
+
+    wrap.appendChild(openBtn);
+    wrap.appendChild(xBtn);
+    host.appendChild(wrap);
+    T2.live++;
+
+    on(openBtn, 'click', function () {
+      T2.taps++;
+      t2Remove(wrap);
+      t2Decoy(pick[0]);
+    });
+    on(xBtn, 'click', function () {
+      T2.dismissed++;
+      t2Remove(wrap);
+    });
+
+    T2.timers.push(setTimeout(function () { t2Remove(wrap); }, CFG.NOTIF_LIFE_MS));
+    postHeight();
+  }
+
+  function t2Remove(el) {
+    // A notification can be removed by the user and by its own life timer.
+    // Without this guard the live count would drop twice for one card and
+    // more notifications would slip past the on screen cap.
+    if (!el || !el.parentNode || el.getAttribute('data-gone')) return;
+    el.setAttribute('data-gone', '1');
+    el.classList.add('is-out');
+    T2.live = Math.max(0, T2.live - 1);
+    var kill = function () { if (el.parentNode) el.parentNode.removeChild(el); };
+    if (reduceMotion) { kill(); } else { setTimeout(kill, 200); }
+  }
+
+  function t2Decoy(appName) {
+    var host = $('#t2-decoy');
+    if (!host) return;
+    host.innerHTML = '';
+
+    var layer = document.createElement('div');
+    layer.className = 'decoy';
+    var inner = document.createElement('div');
+    inner.className = 'inner';
+
+    var eyebrow = document.createElement('span');
+    eyebrow.className = 'eyebrow';
+    eyebrow.textContent = appName;
+
+    var p = document.createElement('p');
+    p.className = 'small';
+    p.textContent = 'Nothing here. This page made that notification up. No message exists, no app is running and nothing was sent anywhere.';
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-ghost';
+    btn.textContent = 'Back to reading';
+    btn.style.marginTop = '16px';
+
+    inner.appendChild(eyebrow);
+    inner.appendChild(p);
+    inner.appendChild(btn);
+    layer.appendChild(inner);
+    host.appendChild(layer);
+
+    on(btn, 'click', function () {
+      host.innerHTML = '';
+      var reader = $('#t2-reader');
+      if (reader) { try { reader.focus({ preventScroll: true }); } catch (e) { reader.focus(); } }
+    });
+    try { btn.focus({ preventScroll: true }); } catch (e) { btn.focus(); }
+  }
+
+  function t2DoneReading() {
+    T2.readMs = performance.now() - T2.startedAt;
+    t2Reset();
+    T2.qIdx = 0;
+    T2.score = 0;
+    t2RenderQuestion();
+    panel('t2', 't2-quiz');
+  }
+
+  function t2RenderQuestion() {
+    var item = T2.order[T2.qIdx];
+    $('#t2-qcount').textContent = (T2.qIdx + 1) + ' of ' + T2.order.length;
+    $('#t2-meter').style.width = ((T2.qIdx / T2.order.length) * 100) + '%';
+    $('#t2-question').textContent = item.q;
+
+    var host = $('#t2-opts');
+    host.innerHTML = '';
+    var letters = ['A', 'B', 'C', 'D'];
+
+    item.opts.forEach(function (text, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'opt';
+      var mark = document.createElement('span');
+      mark.className = 'mark';
+      mark.setAttribute('aria-hidden', 'true');
+      mark.textContent = letters[i] || String(i + 1);
+      var label = document.createElement('span');
+      label.textContent = text;
+      b.appendChild(mark);
+      b.appendChild(label);
+      on(b, 'click', function () { t2Answer(text); });
+      host.appendChild(b);
+    });
+    announce('Question ' + (T2.qIdx + 1) + ' of ' + T2.order.length);
+    postHeightSoon();
+  }
+
+  function t2Answer(text) {
+    if (text === T2.order[T2.qIdx].answer) T2.score++;
+    T2.qIdx++;
+    if (T2.qIdx >= T2.order.length) {
+      $('#t2-score').textContent = T2.score + ' of ' + T2.order.length;
+      $('#t2-taps').textContent = String(T2.taps);
+      $('#t2-time').textContent = fmtClock(T2.readMs);
+      panel('t2', 't2-done');
+      announce('Feed test complete. ' + T2.score + ' of ' + T2.order.length + ' correct.');
+    } else {
+      t2RenderQuestion();
+    }
+  }
+
+  /* ==========================================================
+     EXPERIMENT 03, THE WAITING ROOM
+     ========================================================== */
+
+  var T3 = { start: 0, raf: null, tick: null, ms: 0, completed: false, running: false };
+
+  function t3Stop() {
+    if (T3.raf) { cancelAnimationFrame(T3.raf); T3.raf = null; }
+    if (T3.tick) { clearInterval(T3.tick); T3.tick = null; }
+    T3.running = false;
+  }
+
+  function t3Step() {
+    if (!T3.running) return;
+    var elapsed = performance.now() - T3.start;
+    var p = Math.min(1, elapsed / CFG.WAIT_TOTAL_MS);
+    $('#t3-fill').style.width = (p * 100) + '%';
+    $('#t3-pct').textContent = Math.floor(p * 100) + '%';
+    if (p >= 1) {
+      t3Stop();
+      t3Finish(true, CFG.WAIT_TOTAL_MS);
+      return;
+    }
+    if (!reduceMotion) T3.raf = requestAnimationFrame(t3Step);
+  }
+
+  function t3Start() {
+    t3Stop();
+    T3.completed = false;
+    T3.ms = 0;
+    T3.running = true;
+    T3.start = performance.now();
+    $('#t3-fill').style.width = '0%';
+    $('#t3-pct').textContent = '0%';
+    panel('t3', 't3-wait');
+    announce('The wait has started. A skip button is available.');
+    if (reduceMotion) {
+      T3.tick = setInterval(t3Step, 250);
+      t3Step();
+    } else {
+      T3.raf = requestAnimationFrame(t3Step);
+    }
+  }
+
+  function t3Skip() {
+    if (!T3.running) return;
+    var elapsed = performance.now() - T3.start;
+    t3Stop();
+    t3Finish(false, elapsed);
+  }
+
+  function t3Finish(completed, ms) {
+    T3.completed = completed;
+    T3.ms = Math.min(ms, CFG.WAIT_TOTAL_MS);
+    $('#t3-payoff-eyebrow').textContent = completed
+      ? 'You waited the whole minute'
+      : ('You skipped at ' + Math.round(T3.ms / 1000) + ' seconds');
+    panel('t3', 't3-payoff');
+    announce(completed ? 'The wait is over.' : 'Skipped. Here is the result anyway.');
+  }
+
+  /* ==========================================================
+     RESULTS
+     ========================================================== */
+
+  function countUp(el, to, decimals) {
+    var from = 0;
+    var dp = decimals || 0;
+    if (reduceMotion) { el.textContent = to.toFixed(dp); return; }
+    var startAt = performance.now();
+    function frame(now) {
+      var p = Math.min(1, (now - startAt) / CFG.COUNTUP_MS);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = (from + (to - from) * eased).toFixed(dp);
+      if (p < 1) requestAnimationFrame(frame);
+      else el.textContent = to.toFixed(dp);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function costText(cost, a, b) {
+    if (cost === null) {
+      return 'There were not enough clean trials to work out a median. That usually means a lot of trials came in faster than ' +
+        CFG.RT_MIN_MS + ' ms, slower than ' + CFG.RT_MAX_MS + ' ms, or with the wrong answer. Running the test again in a quieter moment normally fixes it.';
+    }
+    var ms = Math.round(cost);
+    if (cost < 0) {
+      return 'Block B came out ' + Math.abs(ms) + ' ms faster than block A. That happens. Block A always runs first, so the practice you got during it can outweigh the cost of switching. It is a good example of why the order of two conditions matters.';
+    }
+    if (cost < CFG.COST_TYPICAL_LOW) {
+      return 'That is at the low end for this task. A small gap does not mean switching is free for you, only that it did not show up strongly in these 48 trials.';
+    }
+    if (cost <= CFG.COST_TYPICAL_HIGH) {
+      return 'That sits in the usual range for this task. Every extra rule change in block B cost you about ' + ms + ' ms, and that is a normal result rather than a problem.';
+    }
+    return 'That is above the usual range for this task. A six minute test cannot tell you why. Being tired, being interrupted, reading the buttons carefully or simply being new to the layout will all push it up.';
+  }
+
+  function scoreText(score, taps, readMs) {
+    var parts = [];
+    if (score === 4) parts.push('You got all four.');
+    else if (score >= 2) parts.push('You got ' + score + ' of the four.');
+    else parts.push('You got ' + score + ' of the four.');
+
+    if (taps === 0) parts.push('You did not open any of the notifications.');
+    else if (taps === 1) parts.push('You opened one notification.');
+    else parts.push('You opened ' + taps + ' of them.');
+
+    parts.push('You spent ' + fmtClock(readMs) + ' on the passage.');
+    parts.push('Four questions cannot measure comprehension, so read this as something to compare against your own next attempt rather than a score.');
+    return parts.join(' ');
+  }
+
+  function waitText(completed, ms) {
+    if (completed) {
+      return 'You sat through the whole minute with nothing to do. Worth noticing how that felt, because the feeling is the interesting part rather than the number.';
+    }
+    var s = Math.round(ms / 1000);
+    return 'You skipped at ' + s + ' second' + (s === 1 ? '' : 's') + '. That is information, not a verdict. The bar was deliberately slow and there was nothing to do while it filled, which is a fair thing to opt out of.';
+  }
+
+  var STORE_KEY = 'attentionLab.v1';
+
+  function readRuns() {
+    try {
+      var raw = window.localStorage.getItem(STORE_KEY);
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Object.prototype.toString.call(parsed) === '[object Array]' ? parsed : [];
+    } catch (e) { return []; }
+  }
+
+  function saveRun(run) {
+    try {
+      var runs = readRuns();
+      runs.push(run);
+      while (runs.length > 5) runs.shift();
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(runs));
+    } catch (e) { /* private mode and blocked storage both land here */ }
+  }
+
+  function clearRuns() {
+    try { window.localStorage.removeItem(STORE_KEY); } catch (e) { /* no op */ }
+  }
+
+  function renderResults() {
+    var a = summarise(T1.A);
+    var b = summarise(T1.B);
+    var cost = (a.median === null || b.median === null) ? null : (b.median - a.median);
+
+    var previous = readRuns();
+    var last = previous.length ? previous[previous.length - 1] : null;
+
+    // Switch cost
+    var costEl = $('#r-cost');
+    if (cost === null) {
+      costEl.textContent = 'n/a';
+      $('#r-cost-unit').textContent = 'not enough clean trials';
+    } else {
+      $('#r-cost-unit').textContent = 'milliseconds per switch';
+      countUp(costEl, Math.round(cost), 0);
+    }
+    $('#r-cost-text').textContent = costText(cost, a, b);
+    $('#r-medA').textContent = a.median === null ? 'n/a' : (Math.round(a.median) + ' ms');
+    $('#r-medB').textContent = b.median === null ? 'n/a' : (Math.round(b.median) + ' ms');
+
+    // Feed test
+    countUp($('#r-score'), T2.score, 0);
+    $('#r-score-text').textContent = scoreText(T2.score, T2.taps, T2.readMs);
+    $('#r-taps').textContent = String(T2.taps);
+    $('#r-time').textContent = fmtClock(T2.readMs);
+
+    // Waiting room
+    var secs = Math.round(T3.ms / 1000);
+    countUp($('#r-wait'), secs, 0);
+    $('#r-wait-unit').textContent = T3.completed
+      ? 'seconds, the full wait'
+      : 'seconds waited out of 60';
+    $('#r-wait-text').textContent = waitText(T3.completed, T3.ms);
+
+    // Comparison against the previous run on this device
+    var cmp = $('#r-compare');
+    if (last && cost !== null && typeof last.cost === 'number') {
+      var days = Math.round((Date.now() - last.at) / 86400000);
+      var diff = Math.round(cost - last.cost);
+      var when = days < 1 ? 'earlier today' : (days === 1 ? 'yesterday' : (days + ' days ago'));
+      var dir = diff === 0 ? 'exactly the same as' :
+        (diff > 0 ? (diff + ' ms higher than') : (Math.abs(diff) + ' ms lower than'));
+      cmp.textContent = 'Last run on this device was ' + when + ', with a switch cost of ' +
+        Math.round(last.cost) + ' ms. Today is ' + dir + ' that. One comparison is not a trend, and conditions matter more than you would think.';
+      cmp.hidden = false;
+    } else {
+      cmp.hidden = true;
+    }
+
+    saveRun({
+      at: Date.now(),
+      cost: cost,
+      medA: a.median,
+      medB: b.median,
+      accA: a.accuracy,
+      accB: b.accuracy,
+      score: T2.score,
+      taps: T2.taps,
+      readMs: Math.round(T2.readMs),
+      waitMs: Math.round(T3.ms),
+      waited: T3.completed
+    });
+
+    announce('Results ready.');
+  }
+
+  /* ==========================================================
+     EXIT DIALOG
+     ========================================================== */
+
+  var lastFocused = null;
+
+  function openExit() {
+    if (current !== 't1' && current !== 't2' && current !== 't3') return;
+    lastFocused = document.activeElement;
+    var ov = $('#overlay');
+    ov.hidden = false;
+    ov.classList.add('is-open');
+    try { $('#dlg-no').focus({ preventScroll: true }); } catch (e) { $('#dlg-no').focus(); }
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'attentionLabScrollIntoView' }, '*');
+      }
+    } catch (e) { /* no op */ }
+    postHeight();
+  }
+
+  function closeExit() {
+    var ov = $('#overlay');
+    ov.classList.remove('is-open');
+    ov.hidden = true;
+    if (lastFocused && lastFocused.focus) {
+      try { lastFocused.focus({ preventScroll: true }); } catch (e) { lastFocused.focus(); }
+    }
+    postHeight();
+  }
+
+  function isDialogOpen() { return $('#overlay').classList.contains('is-open'); }
+
+  function resetAll() {
+    t1Reset();
+    t2Reset();
+    t3Stop();
+    T1.A = []; T1.B = []; T1.trials = []; T1.idx = 0; T1.phase = null;
+    T2.taps = 0; T2.dismissed = 0; T2.score = 0; T2.qIdx = 0; T2.readMs = 0;
+    T3.ms = 0; T3.completed = false;
+    panel('t1', 't1-intro');
+    panel('t2', 't2-intro');
+    panel('t3', 't3-intro');
+    $('#clear-note').hidden = true;
+    show('intro');
+  }
+
+  /* ==========================================================
+     WIRING
+     ========================================================== */
+
+  on($('#btn-start'), 'click', function () { show('t1'); panel('t1', 't1-intro'); });
+
+  $$('#screen-t1 [data-go]').forEach(function (btn) {
+    on(btn, 'click', function () { t1Begin(btn.getAttribute('data-go')); });
+  });
+
+  wireAnswer($('#t1-left'), 'left');
+  wireAnswer($('#t1-right'), 'right');
+
+  on($('#btn-to-t2'), 'click', function () { show('t2'); panel('t2', 't2-intro'); });
+  on($('#btn-t2-start'), 'click', t2Start);
+  on($('#btn-t2-done'), 'click', t2DoneReading);
+  on($('#btn-to-t3'), 'click', function () { show('t3'); panel('t3', 't3-intro'); });
+
+  on($('#btn-t3-start'), 'click', t3Start);
+  on($('#btn-t3-skip'), 'click', t3Skip);
+  on($('#btn-to-results'), 'click', function () { renderResults(); show('results'); });
+
+  on($('#btn-to-next'), 'click', function () { show('next'); });
+  on($('#btn-restart'), 'click', resetAll);
+  on($('#btn-clear'), 'click', function () {
+    clearRuns();
+    $('#clear-note').hidden = false;
+    announce('Saved results cleared.');
+    postHeight();
+  });
+
+  on($('#btn-exit'), 'click', openExit);
+  on($('#dlg-no'), 'click', closeExit);
+  on($('#dlg-yes'), 'click', function () { closeExit(); resetAll(); });
+
+  /* Keyboard. F and J or the arrow keys answer a trial, Escape leaves a test. */
+  on(document, 'keydown', function (e) {
+    if (e.key === 'Escape') {
+      if (isDialogOpen()) { closeExit(); e.preventDefault(); }
+      else if (current === 't1' || current === 't2' || current === 't3') {
+        openExit();
+        e.preventDefault();
+      }
+      return;
+    }
+    if (isDialogOpen()) return;
+    if (!T1.armed || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = String(e.key).toLowerCase();
+    if (k === 'f' || k === 'arrowleft') { e.preventDefault(); t1Respond('left', e); }
+    else if (k === 'j' || k === 'arrowright') { e.preventDefault(); t1Respond('right', e); }
+  });
+
+  /* Height reporting for the Wix iframe. */
+  /* The experiment cards on the intro expand to say what each test does.
+     They preview the run rather than jumping into it, because the three
+     experiments are meant to be taken in order and the results screen
+     compares them against each other. */
+  $$('#screen-intro .exp').forEach(function (card) {
+    on(card, 'click', function () {
+      var open = card.getAttribute('aria-expanded') === 'true';
+      var body = document.getElementById(card.getAttribute('aria-controls'));
+      card.setAttribute('aria-expanded', open ? 'false' : 'true');
+      if (body) body.classList.toggle('is-open', !open);
+      postHeightSoon();
+    });
+  });
+
+  on($('#privacy'), 'toggle', postHeightSoon);
+  on(window, 'load', postHeightSoon);
+  on(window, 'resize', postHeight);
+  if (window.ResizeObserver) {
+    try { new ResizeObserver(postHeight).observe(document.body); } catch (e) { /* no op */ }
+  }
+  if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+    document.fonts.ready.then(postHeightSoon).catch(function () { /* no op */ });
+  }
+
+  updateTopbar();
+  postHeightSoon();
+
+  /* Exposed for automated checks only. Nothing in the interface uses it. */
+  window.__lab = {
+    CFG: CFG, T1: T1, T2: T2, T3: T3,
+    show: show, panel: panel, t1Begin: t1Begin, summarise: summarise,
+    renderResults: renderResults, makeTrials: makeTrials, correctSide: correctSide,
+    median: median, resetAll: resetAll,
+    get current() { return current; }
+  };
+})();
+</script>
+</body>
+</html>
