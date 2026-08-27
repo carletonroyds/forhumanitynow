@@ -1023,6 +1023,106 @@ body{
   font-size:16px;
 }
 
+.benefit-section{
+  position:relative;
+  margin:38px 0 32px;
+  padding:34px;
+  overflow:hidden;
+  border:1px solid rgba(142,112,255,.26);
+  border-radius:26px;
+  background:
+    radial-gradient(circle at 9% 4%,rgba(49,198,240,.11),transparent 31%),
+    radial-gradient(circle at 94% 100%,rgba(222,85,210,.11),transparent 32%),
+    linear-gradient(135deg,rgba(13,24,52,.88),rgba(14,17,48,.76));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 24px 60px rgba(0,3,14,.28);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.benefit-section::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.28;
+  background-image:radial-gradient(rgba(142,112,255,.85) 1px,transparent 1.4px);
+  background-size:24px 24px;
+  mask-image:linear-gradient(90deg,transparent 48%,#000 100%);
+  -webkit-mask-image:linear-gradient(90deg,transparent 48%,#000 100%);
+}
+.benefit-head{position:relative;z-index:1;max-width:780px;margin-bottom:27px}
+.benefit-kicker{
+  display:block;
+  margin-bottom:10px;
+  color:#b857ef;
+  font-family:var(--display);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+}
+.benefit-section h2{
+  margin-bottom:10px;
+  font-size:clamp(30px,4vw,45px);
+  letter-spacing:-.04em;
+}
+.benefit-intro{max-width:740px;color:#aeb8ce;font-size:17px;line-height:1.55}
+.benefit-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.benefit{
+  --benefit-accent:var(--blue);
+  min-width:0;
+  padding:20px 20px 22px;
+  border:1px solid color-mix(in srgb,var(--benefit-accent) 28%,transparent);
+  border-radius:18px;
+  background:linear-gradient(150deg,color-mix(in srgb,var(--benefit-accent) 10%,transparent),rgba(4,10,28,.28));
+}
+.benefit:nth-child(2){--benefit-accent:var(--amber)}
+.benefit:nth-child(3){--benefit-accent:var(--teal)}
+.benefit-mark{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-bottom:17px;
+  color:var(--benefit-accent);
+  font-family:var(--display);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+}
+.benefit-mark::before{
+  content:"";
+  width:22px;
+  height:2px;
+  border-radius:2px;
+  background:currentColor;
+  box-shadow:0 0 12px currentColor;
+}
+.benefit h3{margin-bottom:8px;font-size:20px}
+.benefit p{color:#aeb8ce;font-size:14px;line-height:1.55}
+.benefit-close{
+  position:relative;
+  z-index:1;
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  margin:22px 0 0;
+  padding-top:20px;
+  border-top:1px solid var(--line-soft);
+  color:#dce4f8;
+  font-size:15px;
+  line-height:1.55;
+}
+.benefit-close::before{
+  content:"";
+  flex:none;
+  width:8px;
+  height:8px;
+  margin-top:.48em;
+  border-radius:50%;
+  background:var(--magenta);
+  box-shadow:0 0 15px rgba(224,92,216,.9);
+}
+
 .trust{
   gap:14px 0;
   margin:0 0 32px;
@@ -1080,6 +1180,11 @@ body{
   .exp-title{font-size:25px}
   .exp-desc{font-size:18px}
   .exp-more{padding-left:242px}
+  .benefit-section{padding:28px}
+  .benefit-grid{grid-template-columns:1fr}
+  .benefit{display:grid;grid-template-columns:140px 1fr;gap:0 16px;align-items:start}
+  .benefit-mark{grid-row:1 / span 2;margin:3px 0 0}
+  .benefit h3{margin-top:0}
 }
 
 @media (max-width:680px){
@@ -1102,6 +1207,17 @@ body{
   .exp-chev{width:18px}
   .exp-chev svg{width:17px;height:17px}
   .exp-more{padding:10px 16px 9px 78px;font-size:13px}
+  .benefit-section{margin:28px 0 24px;padding:22px 18px;border-radius:21px}
+  .benefit-head{margin-bottom:19px}
+  .benefit-kicker{font-size:10px;margin-bottom:8px}
+  .benefit-section h2{font-size:28px;line-height:1.06;margin-bottom:10px}
+  .benefit-intro{font-size:14px;line-height:1.5}
+  .benefit-grid{gap:9px}
+  .benefit{display:block;padding:16px 17px 17px;border-radius:16px}
+  .benefit-mark{margin-bottom:10px}
+  .benefit h3{font-size:17px;margin-bottom:5px}
+  .benefit p{font-size:13px;line-height:1.48}
+  .benefit-close{margin-top:17px;padding-top:16px;font-size:13px}
   .trust{gap:10px 0;margin-bottom:20px;font-size:12px}
   .trust li{padding:0 10px;gap:6px}
   .trust svg{width:17px;height:17px}
@@ -1325,6 +1441,34 @@ body{
         <p class="exp-more" id="more-3">A bar fills for a minute towards something worth reading. Skip whenever you like. Skipping is recorded but nothing is held back.</p>
       </li>
     </ol>
+
+    <section class="benefit-section" aria-labelledby="benefit-title">
+      <div class="benefit-head">
+        <span class="benefit-kicker">So what?</span>
+        <h2 id="benefit-title">Train the space between impulse and action</h2>
+        <p class="benefit-intro">Attention shapes how quickly you recover from interruptions, whether you follow every notification and how comfortably you can stay with something that takes time.</p>
+      </div>
+
+      <div class="benefit-grid">
+        <article class="benefit">
+          <span class="benefit-mark">Recover</span>
+          <h3>Return to focus</h3>
+          <p>Switch between tasks with less mental drag and get back to important work more deliberately.</p>
+        </article>
+        <article class="benefit">
+          <span class="benefit-mark">Go deeper</span>
+          <h3>Stay with what matters</h3>
+          <p>Remain engaged with reading, conversations and creative work without chasing every distraction.</p>
+        </article>
+        <article class="benefit">
+          <span class="benefit-mark">Choose</span>
+          <h3>Act on purpose</h3>
+          <p>Notice the urge to check, skip or switch—and create enough space to decide what happens next.</p>
+        </article>
+      </div>
+
+      <p class="benefit-close"><strong>You are not aiming for perfect focus.</strong> You are building more control over where your attention goes.</p>
+    </section>
 
     <ul class="trust">
       <li><span class="i-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>About 6 minutes</li>
