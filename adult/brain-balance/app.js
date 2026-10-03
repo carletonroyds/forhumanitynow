@@ -1,4 +1,5 @@
-import { SCENARIOS, REFLECTIONS } from "./data.js";
+// Uses SCENARIOS and REFLECTIONS from data.js (loaded first as a plain script,
+// so the game also works when index.html is opened straight from disk).
 
 // ---------- Icons ----------
 

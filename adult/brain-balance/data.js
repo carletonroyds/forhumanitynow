@@ -2,7 +2,7 @@
 // Each scenario offers three responses: one led by the heart (emotional),
 // one led by the head (logical, but rigid or overthought), and one balanced.
 
-export const SCENARIOS = [
+const SCENARIOS = [
   {
     id: 1,
     title: "Public Speaking",
@@ -235,7 +235,7 @@ export const SCENARIOS = [
   }
 ];
 
-export const REFLECTIONS = [
+const REFLECTIONS = [
   "When did fear or frustration last make a decision for you?",
   "What might have gone differently if you had paused, asked, and balanced?",
   "What is one thing you'll do this week even though part of you hesitates?"
