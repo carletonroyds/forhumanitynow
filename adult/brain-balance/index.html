@@ -2,13 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brain Balance: Emotion & Rational</title>
-    <script type="module" crossorigin src="./index-C_MB-PYh.js"></script>
-    <link rel="stylesheet" crossorigin href="./index-BFIY-UH-.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Brain Balance</title>
+    <meta name="description" content="Balance your heart and your head. Ten real-life moments to practice the ABC method: Ask, Balance, Choose." />
+    <meta name="theme-color" content="#0d1219" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="preload" as="image" href="assets/title.jpg" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div id="root"></div>
+    <div class="backdrop" aria-hidden="true">
+      <div class="backdrop__img" id="backdrop-img"></div>
+      <div class="orb orb--heart"></div>
+      <div class="orb orb--head"></div>
+      <div class="grain"></div>
+    </div>
+
+    <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="true" aria-label="Sound on">
+      <svg class="i-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <svg class="i-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+
+    <main id="app" aria-live="polite"></main>
+
+    <noscript><p style="padding:2rem;color:#fff">Brain Balance needs JavaScript to run.</p></noscript>
+    <script type="module" src="app.js"></script>
   </body>
 </html>
-

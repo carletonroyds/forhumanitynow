@@ -1,5 +1,0 @@
-This folder is populated automatically by `npm run fetch-images`
-(also run automatically in the GitHub Actions deploy workflow and via
-`npm run build`). The downloaded scenario photos are gitignored by default —
-see .gitignore. Commit them here yourself if you'd rather ship the repo
-fully offline/self-contained.
