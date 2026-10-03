@@ -130,7 +130,7 @@ function renderIntro() {
   setBackdrop("assets/title.jpg");
   app.innerHTML = `
     <section class="intro screen">
-      <div class="intro__hero" role="img" aria-label="A human profile: one half a warm sunset sea, the other a cool crystal city, meeting at a golden sun."></div>
+      <div class="intro__hero" role="img" aria-label="A geometric human profile: the face in burnt orange planes, the back of the head a steel-teal blueprint grid, meeting at a brass circle."></div>
       <div class="intro__content">
         <span class="eyebrow">Emotion &amp; Reason Trainer</span>
         <h1 class="intro__title">Brain<br><em>Balance</em></h1>
@@ -346,25 +346,25 @@ function scaleSVG() {
       <svg viewBox="0 0 440 260">
         <defs>
           <linearGradient id="beamGrad" x1="0" x2="1">
-            <stop offset="0" stop-color="#e86a33"/><stop offset=".5" stop-color="#d4ad62"/><stop offset="1" stop-color="#5aa9ad"/>
+            <stop offset="0" stop-color="#d35a20"/><stop offset=".5" stop-color="#c49a45"/><stop offset="1" stop-color="#2c7a80"/>
           </linearGradient>
-          <radialGradient id="sun"><stop offset="0" stop-color="#f3e6c8"/><stop offset=".5" stop-color="#d4ad62"/><stop offset="1" stop-color="#d4ad62" stop-opacity="0"/></radialGradient>
+          <radialGradient id="sun"><stop offset="0" stop-color="#fbf1dc"/><stop offset=".5" stop-color="#c49a45"/><stop offset="1" stop-color="#c49a45" stop-opacity="0"/></radialGradient>
         </defs>
         <circle cx="220" cy="70" r="46" fill="url(#sun)" opacity=".55"/>
-        <path d="M220 74 L196 238 H244 Z" fill="rgba(238,240,238,.12)" stroke="rgba(238,240,238,.35)" stroke-width="1.5"/>
-        <rect x="150" y="236" width="140" height="8" rx="4" fill="rgba(238,240,238,.3)"/>
+        <path d="M220 74 L196 238 H244 Z" fill="rgba(20,24,30,.05)" stroke="rgba(20,24,30,.3)" stroke-width="1.5"/>
+        <rect x="150" y="236" width="140" height="8" rx="4" fill="rgba(20,24,30,.18)"/>
         <g class="scale__beam" id="beam"><rect x="56" y="66" width="328" height="8" rx="4" fill="url(#beamGrad)"/></g>
         <g class="scale__pan" id="pan-l" style="transition: transform 1.6s cubic-bezier(.3,1.6,.4,1)">
-          <path d="M60 70 L28 150 M60 70 L92 150" stroke="rgba(238,240,238,.45)" stroke-width="1.5"/>
-          <path d="M18 150 H102 A42 22 0 0 1 18 150 Z" fill="#e86a33" opacity=".9"/>
-          <g transform="translate(48 118) scale(1.05)" color="#e86a33">${ICON.heart.replace("<svg", '<svg width="26" height="26"')}</g>
+          <path d="M60 70 L28 150 M60 70 L92 150" stroke="rgba(20,24,30,.35)" stroke-width="1.5"/>
+          <path d="M18 150 H102 A42 22 0 0 1 18 150 Z" fill="#d35a20" opacity=".9"/>
+          <g transform="translate(48 118) scale(1.05)" color="#d35a20">${ICON.heart.replace("<svg", '<svg width="26" height="26"')}</g>
         </g>
         <g class="scale__pan" id="pan-r" style="transition: transform 1.6s cubic-bezier(.3,1.6,.4,1)">
-          <path d="M380 70 L348 150 M380 70 L412 150" stroke="rgba(238,240,238,.45)" stroke-width="1.5"/>
-          <path d="M338 150 H422 A42 22 0 0 1 338 150 Z" fill="#5aa9ad" opacity=".9"/>
-          <g transform="translate(367 118) scale(1.05)" color="#5aa9ad">${ICON.head.replace("<svg", '<svg width="26" height="26"')}</g>
+          <path d="M380 70 L348 150 M380 70 L412 150" stroke="rgba(20,24,30,.35)" stroke-width="1.5"/>
+          <path d="M338 150 H422 A42 22 0 0 1 338 150 Z" fill="#2c7a80" opacity=".9"/>
+          <g transform="translate(367 118) scale(1.05)" color="#2c7a80">${ICON.head.replace("<svg", '<svg width="26" height="26"')}</g>
         </g>
-        <circle cx="220" cy="70" r="9" fill="#eef0ee" stroke="#0d1219" stroke-width="3"/>
+        <circle cx="220" cy="70" r="9" fill="#ffffff" stroke="#14181e" stroke-width="3"/>
       </svg>
     </div>`;
 }
