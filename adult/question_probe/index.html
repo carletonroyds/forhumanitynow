@@ -1,77 +1,134 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Question Probe - Premium Decision Support</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script type="importmap">
-      {
-        "imports": {
-          "react": "https://esm.sh/react@18.3.1",
-          "react-dom": "https://esm.sh/react-dom@18.3.1",
-          "framer-motion": "https://esm.sh/framer-motion@11.11.10?deps=react@18.3.1,react-dom@18.3.1",
-          "htm": "https://esm.sh/htm@3.1.1"
-        }
-      }
-    </script>
-    <style>
-      * {
-        box-sizing: border-box;
-      }
-      html {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-      }
-      body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        min-height: 100%;
-        /* Allow vertical scroll on small screens so content is never clipped */
-        overflow-x: hidden;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        font-family: 'Montserrat', sans-serif;
-      }
-      #root {
-        min-height: 100vh;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-      }
-      .glass-card {
-        background: rgba(255, 255, 255, 0.62);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-      }
-      .bg-overlay {
-        background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.4));
-      }
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 10px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 10px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 0, 0, 0.2);
-      }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="main.js"></script>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0c0c0e">
+  <title>Question Probe</title>
+  <meta name="description" content="Ten difficult conversations. Choose the question that brings context, specifics and openness, and see how your instincts compare.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230c0c0e'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-family='Georgia,serif' font-size='38' font-style='italic' fill='%23d9b878'%3E%3F%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true">
+    <div class="bg-layer" id="bgA"></div>
+    <div class="bg-layer" id="bgB"></div>
+    <div class="bg-shade"></div>
+    <div class="grain"></div>
+  </div>
+
+  <div class="app">
+    <header class="topbar">
+      <button class="brand" id="homeBtn" type="button" aria-label="Question Probe, return to start">
+        <span class="brand-mark" aria-hidden="true">?</span>
+        <span>Question Probe</span>
+      </button>
+      <div class="top-actions">
+        <button class="text-btn" id="soundBtn" type="button" aria-pressed="true">Sound on</button>
+        <button class="text-btn" id="restartBtn" type="button" hidden>Restart</button>
+      </div>
+    </header>
+
+    <!-- INTRO -->
+    <main class="screen intro" id="introScreen" aria-labelledby="introTitle">
+      <div class="intro-copy">
+        <p class="eyebrow">Ten conversations · about eight minutes</p>
+        <h1 id="introTitle">The answer you get depends on the <em>question you ask.</em></h1>
+        <p class="lede">Each scenario is a moment most adults will recognise: an overdue report, a doubled bill, a parent who should probably stop driving. Three people would ask three different questions. Choose the one you'd want to ask, then see exactly what each one gives away.</p>
+        <div class="intro-actions">
+          <button class="btn primary" id="startBtn" type="button">Begin <span aria-hidden="true">→</span></button>
+          <span class="hint">Use keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> and <kbd>Enter</kbd></span>
+        </div>
+      </div>
+      <ol class="pillars" aria-label="What makes a strong question">
+        <li class="pillar" data-dim="c">
+          <span class="pillar-key">C</span>
+          <div><h2>Context</h2><p>Why you're asking and what's at stake. It gives the other person a reason to engage.</p></div>
+        </li>
+        <li class="pillar" data-dim="s">
+          <span class="pillar-key">S</span>
+          <div><h2>Specifics</h2><p>Concrete facts: dates, figures, examples. It turns a vague worry into something they can act on.</p></div>
+        </li>
+        <li class="pillar" data-dim="o">
+          <span class="pillar-key">O</span>
+          <div><h2>Openness</h2><p>A real question that invites their view rather than assuming the answer or assigning blame.</p></div>
+        </li>
+      </ol>
+    </main>
+
+    <!-- PLAY -->
+    <main class="screen play" id="playScreen" hidden aria-labelledby="sceneTitle">
+      <div class="hud">
+        <span class="hud-count" id="hudCount">01 / 10</span>
+        <div class="track" id="track" aria-hidden="true"></div>
+        <span class="hud-score" id="hudScore" aria-live="polite">0 pts</span>
+      </div>
+
+      <div class="play-grid">
+        <section class="scene" aria-live="polite">
+          <p class="scene-domain" id="sceneDomain"></p>
+          <h2 class="scene-title" id="sceneTitle" tabindex="-1"></h2>
+          <p class="scene-text" id="sceneText"></p>
+          <p class="scene-goal" id="sceneGoal"></p>
+        </section>
+
+        <section class="decide" aria-labelledby="askLabel">
+          <p class="ask-label" id="askLabel">What do you ask?</p>
+          <div class="options" id="options"></div>
+          <div class="verdict" id="verdict" hidden>
+            <div class="verdict-head">
+              <div>
+                <p class="verdict-kicker" id="verdictKicker"></p>
+                <p class="verdict-line" id="verdictLine"></p>
+              </div>
+              <span class="verdict-pts" id="verdictPts"></span>
+            </div>
+            <p class="verdict-why" id="verdictWhy"></p>
+            <button class="btn primary" id="nextBtn" type="button"></button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- RESULTS -->
+    <main class="screen results" id="resultScreen" hidden aria-labelledby="resultTitle">
+      <div class="result-top">
+        <div class="score-dial" id="scoreDial" style="--p:0">
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="dial-bg" cx="60" cy="60" r="54"/><circle class="dial-fg" id="dialFg" cx="60" cy="60" r="54"/></svg>
+          <div class="dial-num"><span id="scoreNum">0</span><small>of 30</small></div>
+        </div>
+        <div>
+          <p class="eyebrow" id="rankTag"></p>
+          <h2 id="resultTitle" tabindex="-1"></h2>
+          <p class="lede" id="resultSummary"></p>
+        </div>
+      </div>
+
+      <div class="profile">
+        <div class="profile-bars" id="profileBars"></div>
+        <aside class="coach" id="coach"></aside>
+      </div>
+
+      <div class="review-head">
+        <h3>Your ten questions</h3>
+        <span>Select any conversation to compare your question with the strongest one.</span>
+      </div>
+      <div class="review" id="review"></div>
+
+      <div class="result-actions">
+        <button class="btn primary" id="againBtn" type="button">Play again</button>
+        <button class="btn ghost" id="toIntroBtn" type="button">Back to start</button>
+      </div>
+    </main>
+  </div>
+
+  <p class="sr-only" id="live" aria-live="polite" aria-atomic="true"></p>
+
+  <script src="scenarios.js"></script>
+  <script src="app.js"></script>
+</body>
 </html>
