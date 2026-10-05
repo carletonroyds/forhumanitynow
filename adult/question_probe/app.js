@@ -51,19 +51,33 @@
     if (focusSel) requestAnimationFrame(() => $(focusSel).focus({ preventScroll: true }));
   }
 
-  function dimChips(dims) {
-    return `<div class="dims">${Object.keys(DIMS).map(d => `<span class="dim${dims.includes(d) ? " on" : ""}" data-d="${d}">${DIMS[d]}</span>`).join("")}</div>`;
-  }
+  /* Question text carries [c:...] [s:...] [o:...] markup naming the phrase that supplies each quality. */
+  const plain = t => t.replace(/\[[cso]:([^\]]+)\]/g, "$1");
+  const marked = (t, delay = 0) => { let k = 0; return t.replace(/\[([cso]):([^\]]+)\]/g, (_, d, txt) => `<mark class="hl" data-d="${d}" title="${DIMS[d]}" style="--delay:${delay + k++ * .35}s">${txt}</mark>`); };
+  const signal = dims => `<span class="sig" aria-label="${Object.keys(DIMS).filter(d => dims.includes(d)).map(d => DIMS[d]).join(", ") || "None of the three qualities"}">${Object.keys(DIMS).map(d => `<i class="${dims.includes(d) ? "on" : ""}" data-d="${d}" aria-hidden="true">${d.toUpperCase()}</i>`).join("")}</span>`;
 
   /* ---------- Intro ---------- */
+  let anatomyTimer;
+  function playAnatomy() {
+    const a = $("#anatomy");
+    clearTimeout(anatomyTimer);
+    a.classList.remove("lit");
+    const cycle = () => {
+      a.classList.remove("lit"); void a.offsetWidth;
+      anatomyTimer = setTimeout(() => { a.classList.add("lit"); anatomyTimer = setTimeout(cycle, 7000); }, 1800);
+    };
+    cycle();
+  }
   function toIntro() {
     state = fresh();
     setBg("assets/bg-intro-title.webp");
     show("intro");
+    playAnatomy();
   }
 
   /* ---------- Play ---------- */
   function start() {
+    clearTimeout(anatomyTimer);
     state = fresh();
     show("play", "#sceneTitle");
     renderScene();
@@ -94,7 +108,7 @@
     $("#options").innerHTML = state.order.map((o, i) => `
       <button class="option" type="button" data-i="${i}">
         <span class="option-key" aria-hidden="true">${i + 1}</span>
-        <span class="option-text">${o.text}</span>
+        <span class="option-text">${plain(o.text)}</span>
       </button>`).join("");
     [...$("#options").children].forEach(b => b.addEventListener("click", () => choose(Number(b.dataset.i))));
     say(`Conversation ${state.idx + 1} of ${TOTAL}: ${sc.title}. ${sc.text} ${sc.goal} Choose one of three questions.`);
@@ -112,21 +126,22 @@
       const o = state.order[k];
       const isBest = points(o) === 3, isPick = k === i;
       b.disabled = true;
-      b.classList.add(isBest ? "best" : isPick ? "chosen" : "other");
+      b.classList.add(isBest ? "best" : "other");
       if (isPick) b.classList.add("chosen");
       const tag = isBest && isPick ? "Your choice · strongest" : isBest ? "Strongest" : isPick ? "Your choice" : "";
-      b.insertAdjacentHTML("beforeend", `<div class="analysis">${dimChips(o.dims).replace("</div>", `${tag ? `<span class="tag">${tag}</span>` : ""}</div>`)}<p class="note">${o.note}</p></div>`);
+      b.querySelector(".option-text").innerHTML = marked(o.text, .15 + k * .1);
+      b.insertAdjacentHTML("beforeend", `<div class="analysis"><div class="analysis-head">${tag ? `<span class="tag">${tag}</span>` : "<span></span>"}${signal(o.dims)}</div><p class="note">${o.note}</p></div>`);
     });
 
+    const missing = Object.keys(DIMS).filter(d => !pick.dims.includes(d)).map(d => DIMS[d].toLowerCase());
     const lines = [
-      ["A question that closes the conversation", "It carries none of the three. Look at what the strongest version adds."],
-      ["One part of a strong question", `It brings ${DIMS[pick.dims]}, but the other two are missing.`],
-      ["Close, with one thing missing", `It lacks ${DIMS[Object.keys(DIMS).find(d => !pick.dims.includes(d))]}.`],
-      ["The strongest question", "Context, specifics and openness, all in one question."]
+      "Missing all three qualities",
+      `Missing ${missing.join(" and ")}`,
+      `Close · missing ${missing[0]}`,
+      "The strongest question"
     ];
-    $("#verdictKicker").textContent = lines[pts][0];
-    $("#verdictLine").textContent = lines[pts][1];
-    $("#verdictPts").textContent = `+${pts}`;
+    $("#verdictKicker").textContent = lines[pts];
+    $("#verdictPts").innerHTML = `+${pts}<small>pts</small>`;
     $("#verdictWhy").textContent = sc.lesson;
     $("#nextBtn").innerHTML = state.idx < TOTAL - 1 ? `Next conversation <span aria-hidden="true">→</span>` : `See your profile <span aria-hidden="true">→</span>`;
     $("#verdict").hidden = false;
@@ -136,7 +151,7 @@
     sound.play(pts === 3 ? "good" : "bad");
     $("#nextBtn").focus({ preventScroll: true });
     setTimeout(() => $("#verdict").scrollIntoView({ behavior: "smooth", block: "nearest" }), 250);
-    say(`${lines[pts][0]}. ${lines[pts][1]} Plus ${pts} points. ${sc.lesson}`);
+    say(`${lines[pts]}. Plus ${pts} points. ${sc.lesson}`);
   }
 
   function next() {
@@ -207,8 +222,8 @@
             <span class="r-chev" aria-hidden="true">⌄</span>
           </summary>
           <div class="r-body">
-            <div class="r-q${pts === 3 ? " best-q" : ""}"><h4>${pts === 3 ? "You asked · strongest" : "You asked"}</h4><p>“${p.text}”</p>${dimChips(p.dims)}</div>
-            ${pts === 3 ? "" : `<div class="r-q best-q"><h4>Strongest</h4><p>“${best.text}”</p>${dimChips(best.dims)}</div>`}
+            <div class="r-q${pts === 3 ? " best-q" : ""}"><h4>${pts === 3 ? "You asked · strongest" : "You asked"}${signal(p.dims)}</h4><p>“${marked(p.text)}”</p></div>
+            ${pts === 3 ? "" : `<div class="r-q best-q"><h4>Strongest${signal(best.dims)}</h4><p>“${marked(best.text)}”</p></div>`}
             <p class="r-lesson">${sc.lesson}</p>
           </div>
         </details>`;

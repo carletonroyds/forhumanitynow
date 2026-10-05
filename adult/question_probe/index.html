@@ -38,26 +38,24 @@
       <div class="intro-copy">
         <p class="eyebrow">Ten conversations · about eight minutes</p>
         <h1 id="introTitle">The answer you get depends on the <em>question you ask.</em></h1>
-        <p class="lede">Each scenario is a moment most adults will recognise: an overdue report, a doubled bill, a parent who should probably stop driving. Three people would ask three different questions. Choose the one you'd want to ask, then see exactly what each one gives away.</p>
+        <p class="lede">Ten moments most adults will recognise: an overdue report, a doubled bill, a parent who should probably stop driving. In each, choose the question you'd ask, then see which words gave it context, specifics and openness, and which ones were missing.</p>
         <div class="intro-actions">
           <button class="btn primary" id="startBtn" type="button">Begin <span aria-hidden="true">→</span></button>
           <span class="hint">Use keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> and <kbd>Enter</kbd></span>
         </div>
       </div>
-      <ol class="pillars" aria-label="What makes a strong question">
-        <li class="pillar" data-dim="c">
-          <span class="pillar-key">C</span>
-          <div><h2>Context</h2><p>Why you're asking and what's at stake. It gives the other person a reason to engage.</p></div>
-        </li>
-        <li class="pillar" data-dim="s">
-          <span class="pillar-key">S</span>
-          <div><h2>Specifics</h2><p>Concrete facts: dates, figures, examples. It turns a vague worry into something they can act on.</p></div>
-        </li>
-        <li class="pillar" data-dim="o">
-          <span class="pillar-key">O</span>
-          <div><h2>Openness</h2><p>A real question that invites their view rather than assuming the answer or assigning blame.</p></div>
-        </li>
-      </ol>
+      <figure class="anatomy" id="anatomy" aria-label="Anatomy of a strong question">
+        <figcaption class="eyebrow">Anatomy of a strong question</figcaption>
+        <div class="anatomy-stage">
+          <p class="anatomy-weak" id="anatomyWeak">“Why is the launch late again?”</p>
+          <p class="anatomy-q" id="anatomyQ"><mark class="hl" data-d="c">I'm worried we'll miss the launch,</mark> <mark class="hl" data-d="s">and the designs are now four days late.</mark> <mark class="hl" data-d="o">What's getting in the way, and how can I help?</mark></p>
+        </div>
+        <ol class="legend">
+          <li data-d="c"><b>Context</b><span>Why you're asking and what's at stake.</span></li>
+          <li data-d="s"><b>Specifics</b><span>Dates, figures, examples they can act on.</span></li>
+          <li data-d="o"><b>Openness</b><span>Invites their view instead of a verdict.</span></li>
+        </ol>
+      </figure>
     </main>
 
     <!-- PLAY -->
@@ -73,21 +71,18 @@
           <p class="scene-domain" id="sceneDomain"></p>
           <h2 class="scene-title" id="sceneTitle" tabindex="-1"></h2>
           <p class="scene-text" id="sceneText"></p>
-          <p class="scene-goal" id="sceneGoal"></p>
+          <div class="scene-goal"><span>Your aim</span><p id="sceneGoal"></p></div>
         </section>
 
         <section class="decide" aria-labelledby="askLabel">
           <p class="ask-label" id="askLabel">What do you ask?</p>
           <div class="options" id="options"></div>
           <div class="verdict" id="verdict" hidden>
-            <div class="verdict-head">
-              <div>
-                <p class="verdict-kicker" id="verdictKicker"></p>
-                <p class="verdict-line" id="verdictLine"></p>
-              </div>
-              <span class="verdict-pts" id="verdictPts"></span>
+            <span class="verdict-pts" id="verdictPts"></span>
+            <div class="verdict-body">
+              <p class="verdict-kicker" id="verdictKicker"></p>
+              <p class="verdict-why" id="verdictWhy"></p>
             </div>
-            <p class="verdict-why" id="verdictWhy"></p>
             <button class="btn primary" id="nextBtn" type="button"></button>
           </div>
         </section>
