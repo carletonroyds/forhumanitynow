@@ -1,50 +1,173 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bias Awareness</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script type="importmap">
-      {
-        "imports": {
-          "phaser": "https://esm.sh/phaser@3.70.0",
-          "tone": "https://esm.sh/tone@14.7.77"
-        }
-      }
-    </script>
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        background-color: #000;
-        overflow: hidden;
-        height: 100%;
-        width: 100%;
-        touch-action: none;
-        font-family: 'Montserrat', sans-serif;
-      }
-      #game-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100dvh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10;
-        overflow: hidden;
-      }
-      canvas {
-        display: block;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="game-container"></div>
-    <script type="module" src="main.js"></script>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f3f1ec">
+  <title>Bias Awareness</title>
+  <meta name="description" content="Ten realistic cases. Diagnose the cognitive bias at work, commit to how confident you are, and see how well calibrated your own judgment really is.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f3f1ec'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%2314161b' stroke-width='3'/%3E%3Ccircle cx='38' cy='32' r='17' fill='none' stroke='%23324f78' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <button class="brand" id="homeBtn" type="button" aria-label="Bias Awareness, return to start">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+        <span>Bias Awareness</span>
+      </button>
+      <nav class="top-actions">
+        <button class="text-btn" id="guideBtn" type="button">Field guide</button>
+        <button class="text-btn" id="soundBtn" type="button" aria-pressed="true">Sound on</button>
+        <button class="text-btn" id="restartBtn" type="button" hidden>Restart</button>
+      </nav>
+    </header>
+
+    <!-- INTRO -->
+    <main class="screen intro" id="introScreen" aria-labelledby="introTitle">
+      <section class="intro-copy">
+        <p class="kicker">Ten cases · about ten minutes</p>
+        <h1 id="introTitle">Your mind is a brilliant, <em>unreliable</em> witness.</h1>
+        <p class="lede">Each case describes a decision a thoughtful adult might make. Something is distorting it. Your task is to diagnose which cognitive bias is at work, and to say how sure you are. At the end you'll see not only what you got right, but how well your confidence matched reality.</p>
+        <ol class="method">
+          <li><b>Read</b><span>the case</span></li>
+          <li><b>Diagnose</b><span>the bias</span></li>
+          <li><b>Commit</b><span>your confidence</span></li>
+        </ol>
+      </section>
+
+      <section class="blindspot" aria-labelledby="bsTitle">
+        <figure class="plate"><img src="assets/adult_start_screen-jpg.webp" alt="" loading="eager"></figure>
+        <div class="bs-card">
+          <p class="kicker">Before you begin</p>
+          <h2 id="bsTitle">Compared with the average person, how susceptible are you to cognitive bias?</h2>
+          <div class="scale" id="bsScale" role="radiogroup" aria-labelledby="bsTitle"></div>
+          <button class="btn primary" id="startBtn" type="button" disabled>Open the first case <span aria-hidden="true">→</span></button>
+          <p class="fine">Nothing is stored or sent anywhere.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- CASE -->
+    <main class="screen case" id="caseScreen" hidden aria-labelledby="caseTitle">
+      <div class="hud">
+        <span class="hud-label" id="hudLabel">Case 01 of 10</span>
+        <div class="ticks" id="ticks" aria-hidden="true"></div>
+        <span class="hud-label" id="hudScore">0 correct</span>
+      </div>
+
+      <div class="case-grid">
+        <article class="dossier">
+          <p class="kicker" id="caseDomain"></p>
+          <h2 class="case-title" id="caseTitle" tabindex="-1"></h2>
+          <p class="case-text" id="caseText"></p>
+        </article>
+
+        <section class="diagnose" id="diagnose" aria-labelledby="dxLabel">
+          <p class="step-label" id="dxLabel"><span>I</span> Which bias is at work?</p>
+          <div class="dx-options" id="dxOptions" role="radiogroup" aria-labelledby="dxLabel"></div>
+
+          <p class="step-label" id="cfLabel"><span>II</span> How confident are you?</p>
+          <div class="confidence" id="confidence" role="radiogroup" aria-labelledby="cfLabel"></div>
+          <p class="cf-hint">50% is a pure guess among the options you're torn between; 99% means you would stake a great deal on it.</p>
+
+          <button class="btn primary commit" id="commitBtn" type="button" disabled>Commit diagnosis</button>
+        </section>
+      </div>
+
+      <section class="casefile" id="casefile" hidden tabindex="-1" aria-live="polite">
+        <div class="verdict" id="verdict"></div>
+        <div class="cf-grid">
+          <figure class="plate cf-plate"><img id="cfImg" alt=""></figure>
+          <div class="cf-body">
+            <p class="kicker">Case file</p>
+            <h3 id="cfName"></h3>
+            <dl>
+              <div><dt>How it works</dt><dd id="cfMech"></dd></div>
+              <div><dt>The evidence</dt><dd id="cfEvid"></dd></div>
+              <div class="counter"><dt>Countermeasure</dt><dd id="cfCounter"></dd></div>
+            </dl>
+            <button class="btn primary" id="nextBtn" type="button"></button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- RESULTS -->
+    <main class="screen results" id="resultScreen" hidden aria-labelledby="resultTitle">
+      <section class="res-head">
+        <p class="kicker">Your judgment, measured</p>
+        <h2 id="resultTitle" tabindex="-1"></h2>
+        <p class="lede" id="resultLede"></p>
+      </section>
+
+      <section class="res-grid">
+        <div class="metrics">
+          <div class="metric"><span class="m-num" id="mAcc"></span><span class="m-lab">Correct diagnoses</span></div>
+          <div class="metric"><span class="m-num" id="mConf"></span><span class="m-lab">Average confidence</span></div>
+          <div class="metric"><span class="m-num" id="mGap"></span><span class="m-lab" id="mGapLab">Calibration gap</span></div>
+          <p class="m-note">Why it matters: in Philip Tetlock's forecasting research, the most accurate forecasters stood out for calibration. When they said 70%, they were right about 70% of the time. Knowing how much you know is a skill, and it can be trained.</p>
+        </div>
+        <figure class="calib">
+          <figcaption><b>Calibration</b><span>Each point is a confidence level you used. On the diagonal, your confidence matched your accuracy exactly.</span></figcaption>
+          <svg id="calibChart" viewBox="0 0 420 320" role="img" aria-labelledby="calibDesc"><desc id="calibDesc"></desc></svg>
+        </figure>
+      </section>
+
+      <section class="mirror" id="mirror"></section>
+
+      <section class="guide-section">
+        <div class="section-head">
+          <h3>Field guide</h3>
+          <span>The ten biases, with the countermeasure for each. Select one to open its case file.</span>
+        </div>
+        <div class="guide" id="resultGuide"></div>
+      </section>
+
+      <div class="actions">
+        <button class="btn primary" id="againBtn" type="button">Take the cases again</button>
+        <button class="btn ghost" id="toIntroBtn" type="button">Back to start</button>
+      </div>
+    </main>
+
+    <!-- GUIDE (standalone) -->
+    <main class="screen guide-screen" id="guideScreen" hidden aria-labelledby="guideTitle">
+      <section class="res-head">
+        <p class="kicker">Field guide</p>
+        <h2 id="guideTitle" tabindex="-1">Ten ways a capable mind goes wrong.</h2>
+        <p class="lede">Each entry explains how the bias works, the research behind it and a countermeasure you can use the next time it matters.</p>
+      </section>
+      <div class="guide" id="guide"></div>
+      <div class="actions"><button class="btn ghost" id="guideBackBtn" type="button">← Back</button></div>
+    </main>
+  </div>
+
+  <dialog class="entry" id="entry" aria-labelledby="eName">
+    <figure class="plate"><img id="eImg" alt=""></figure>
+    <div class="entry-body">
+      <p class="kicker" id="eNo"></p>
+      <h3 id="eName"></h3>
+      <p class="entry-short" id="eShort"></p>
+      <dl>
+        <div><dt>How it works</dt><dd id="eMech"></dd></div>
+        <div><dt>The evidence</dt><dd id="eEvid"></dd></div>
+        <div class="counter"><dt>Countermeasure</dt><dd id="eCounter"></dd></div>
+      </dl>
+      <div class="entry-nav">
+        <button class="btn ghost small" id="ePrev" type="button">← Previous</button>
+        <button class="btn ghost small" id="eNext" type="button">Next →</button>
+      </div>
+    </div>
+    <button class="close-x" id="eClose" type="button" aria-label="Close">✕</button>
+  </dialog>
+
+  <p class="sr-only" id="live" aria-live="polite" aria-atomic="true"></p>
+
+  <script src="cases.js"></script>
+  <script src="app.js"></script>
+</body>
 </html>
