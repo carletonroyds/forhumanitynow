@@ -10,6 +10,18 @@
   const $ = s => document.querySelector(s);
   const pad = n => String(n).padStart(2, "0");
   const say = m => { $("#live").textContent = m; };
+  const isPhone = () => window.matchMedia("(max-width: 600px)").matches;
+  function setStage(screenSel, stage, focusSel) {
+    $(screenSel).dataset.mstage = stage;
+    if (!isPhone()) return;
+    window.scrollTo({ top: 0 });
+    if (focusSel) { const el = $(focusSel); if (el) { if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1"); el.focus({ preventScroll: true }); } }
+  }
+  function setTab(tab) {
+    $("#resultScreen").dataset.mtab = tab;
+    document.querySelectorAll(".m-tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
+    if (isPhone()) window.scrollTo({ top: 0 });
+  }
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
   /* ---------- Sound: a quiet bell for a correct diagnosis, a soft low tone otherwise ---------- */
@@ -37,6 +49,8 @@
     if (name === "guide" && state.screen !== "guide") state.prev = state.screen;
     state.screen = name;
     ["intro", "case", "result", "guide"].forEach(k => { $(`#${k}Screen`).hidden = k !== name; });
+    if (name === "intro") $("#introScreen").dataset.mstage = "copy";
+    if (name === "result") setTab("summary");
     $("#restartBtn").hidden = name === "intro" || (name === "guide" && state.prev === "intro");
     window.scrollTo({ top: 0, behavior: "smooth" });
     const el = focusSel ? $(focusSel) : null;
@@ -96,6 +110,9 @@
     $("#diagnose").querySelectorAll(".step-label, .cf-hint").forEach(el => { el.hidden = false; });
     $("#commitBtn").hidden = false;
     $("#casefile").hidden = true;
+    $("#mFileBtn").hidden = true;
+    $("#caseText").classList.remove("expanded");
+    setStage("#caseScreen", "scene");
     updateCommit();
     say(`Case ${state.idx + 1} of ${TOTAL}. ${c.title}. ${c.text} Choose the bias at work, then your confidence.`);
   }
@@ -150,10 +167,14 @@
     $("#cfCounter").textContent = bias.counter;
     $("#nextBtn").innerHTML = state.idx < TOTAL - 1 ? `Next case <span aria-hidden="true">→</span>` : `See how your judgment measured up <span aria-hidden="true">→</span>`;
     $("#casefile").hidden = false;
+    $("#mFileBtn").hidden = false;
 
     sound.play(correct ? "hit" : "miss");
-    setTimeout(() => $("#casefile").scrollIntoView({ behavior: "smooth", block: "start" }), 250);
-    $("#nextBtn").focus({ preventScroll: true });
+    if (isPhone()) $("#mFileBtn").focus({ preventScroll: true });
+    else {
+      setTimeout(() => $("#casefile").scrollIntoView({ behavior: "smooth", block: "start" }), 250);
+      $("#nextBtn").focus({ preventScroll: true });
+    }
     say(`${correct ? "Correct" : "Not quite"}. This was ${bias.name}. ${sub} ${bias.mechanism} Countermeasure: ${bias.counter}`);
   }
 
@@ -283,6 +304,11 @@
 
   /* ---------- Wiring ---------- */
   $("#startBtn").addEventListener("click", start);
+  $("#mIntroBtn").addEventListener("click", () => setStage("#introScreen", "blind", "#bsTitle"));
+  $("#mCaseBtn").addEventListener("click", () => setStage("#caseScreen", "decide", "#dxLabel"));
+  $("#mFileBtn").addEventListener("click", () => setStage("#caseScreen", "file", "#casefile"));
+  $("#caseText").addEventListener("click", () => { if (isPhone()) $("#caseText").classList.toggle("expanded"); });
+  document.querySelectorAll(".m-tabs button").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
   $("#commitBtn").addEventListener("click", commit);
   $("#nextBtn").addEventListener("click", next);
   $("#againBtn").addEventListener("click", start);

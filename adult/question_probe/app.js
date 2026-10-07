@@ -8,6 +8,18 @@
   const $ = s => document.querySelector(s);
   const pad = n => String(n).padStart(2, "0");
   const say = m => { $("#live").textContent = m; };
+  const isPhone = () => window.matchMedia("(max-width: 600px)").matches;
+  function setStage(screenSel, stage, focusSel) {
+    $(screenSel).dataset.mstage = stage;
+    if (!isPhone()) return;
+    window.scrollTo({ top: 0 });
+    if (focusSel) { const el = $(focusSel); if (el) { if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1"); el.focus({ preventScroll: true }); } }
+  }
+  function setTab(tab) {
+    $("#resultScreen").dataset.mtab = tab;
+    document.querySelectorAll(".m-tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
+    if (isPhone()) window.scrollTo({ top: 0 });
+  }
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
   /* ---------- Sound ---------- */
@@ -46,6 +58,8 @@
   function show(name, focusSel) {
     state.screen = name;
     ["intro", "play", "result"].forEach(k => { $(`#${k}Screen`).hidden = k !== name; });
+    if (name === "intro") $("#introScreen").dataset.mstage = "copy";
+    if (name === "result") setTab("summary");
     $("#restartBtn").hidden = name === "intro";
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (focusSel) requestAnimationFrame(() => $(focusSel).focus({ preventScroll: true }));
@@ -105,6 +119,9 @@
     $("#sceneText").textContent = sc.text;
     $("#sceneGoal").textContent = sc.goal;
     $("#verdict").hidden = true;
+    $("#mReviewBtn").hidden = true;
+    $("#sceneText").classList.remove("expanded");
+    setStage("#playScreen", "scene");
     $("#options").innerHTML = state.order.map((o, i) => `
       <button class="option" type="button" data-i="${i}">
         <span class="option-key" aria-hidden="true">${i + 1}</span>
@@ -149,8 +166,12 @@
     renderTrack();
     const hs = $("#hudScore"); hs.classList.remove("bump"); void hs.offsetWidth; hs.classList.add("bump");
     sound.play(pts === 3 ? "good" : "bad");
-    $("#nextBtn").focus({ preventScroll: true });
-    setTimeout(() => $("#verdict").scrollIntoView({ behavior: "smooth", block: "nearest" }), 250);
+    $("#mReviewBtn").hidden = false;
+    if (isPhone()) $("#mReviewBtn").focus({ preventScroll: true });
+    else {
+      $("#nextBtn").focus({ preventScroll: true });
+      setTimeout(() => $("#verdict").scrollIntoView({ behavior: "smooth", block: "nearest" }), 250);
+    }
     say(`${lines[pts]}. Plus ${pts} points. ${sc.lesson}`);
   }
 
@@ -214,7 +235,7 @@
     $("#review").innerHTML = SCENES.map((sc, i) => {
       const p = state.picks[i], best = sc.options.find(o => points(o) === 3), pts = points(p);
       return `
-        <details class="r-item">
+        <details class="r-item"${isPhone() ? " open" : ""}>
           <summary>
             <span class="r-num">${pad(i + 1)}</span>
             <span class="r-title">${sc.title}<small>${sc.domain}</small></span>
@@ -235,6 +256,12 @@
 
   /* ---------- Wiring ---------- */
   $("#startBtn").addEventListener("click", start);
+  $("#mStartBtn").addEventListener("click", start);
+  $("#mIntroBtn").addEventListener("click", () => setStage("#introScreen", "anatomy", "#anatomy"));
+  $("#mSceneBtn").addEventListener("click", () => setStage("#playScreen", "decide", "#askLabel"));
+  $("#mReviewBtn").addEventListener("click", () => setStage("#playScreen", "review", "#options"));
+  $("#sceneText").addEventListener("click", () => { if (isPhone()) $("#sceneText").classList.toggle("expanded"); });
+  document.querySelectorAll(".m-tabs button").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
   $("#nextBtn").addEventListener("click", next);
   $("#againBtn").addEventListener("click", start);
   $("#toIntroBtn").addEventListener("click", toIntro);

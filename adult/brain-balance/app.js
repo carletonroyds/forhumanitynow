@@ -86,8 +86,22 @@ const state = {
   picked: null,
   shuffled: [],
   reflections: ["", "", ""],
-  rStep: 0
+  rStep: 0,
+  mstage: "scene",       // phone only: "scene" | "decide" | "reveal"
+  mtab: "profile"        // phone only results tab: "profile" | "tipped"
 };
+
+const isPhone = () => window.matchMedia("(max-width: 600px)").matches;
+
+function setStage(stage, focusSel) {
+  state.mstage = stage;
+  const sec = app.querySelector(".play");
+  if (sec) sec.dataset.mstage = stage;
+  if (!isPhone()) return;
+  window.scrollTo({ top: 0 });
+  const el = focusSel && app.querySelector(focusSel);
+  if (el) { if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1"); el.focus({ preventScroll: true }); }
+}
 
 const app = document.getElementById("app");
 const backdropImg = document.getElementById("backdrop-img");
@@ -167,6 +181,7 @@ function startRun(mode, queue) {
 function loadScenario() {
   const s = SCENARIOS[state.queue[state.pos]];
   state.picked = null;
+  state.mstage = "scene";
   state.shuffled = shuffle(s.choices);
   setBackdrop(s.image);
   const next = state.queue[state.pos + 1];
@@ -194,7 +209,7 @@ function renderPlay(fresh = false) {
   const knob = 50 + lean() * 50;
 
   app.innerHTML = `
-    <section class="play ${fresh ? "screen" : "is-settled"}">
+    <section class="play ${fresh ? "screen" : "is-settled"}" data-mstage="${state.mstage}">
       <header class="topbar">
         <div class="brand">Brain <em>Balance</em></div>
         <div class="progress" aria-label="Moment ${state.pos + 1} of ${total}">
@@ -225,7 +240,9 @@ function renderPlay(fresh = false) {
             <span class="step ${picked ? "is-active" : ""}"><b>C</b>Choose</span>
           </div>
 
+          <h2 class="m-only m-title">${esc(s.title)}</h2>
           <p class="situation">${esc(s.text)}</p>
+          <button class="btn btn--primary btn--block m-only" id="m-scene">What would you do? ${ICON.arrow}</button>
 
           <p class="prompt">What would you do?
             <small>${picked ? "Here's how each option leans." : "Ask what you feel and what's true, then pick the response that balances both."}</small>
@@ -235,6 +252,7 @@ function renderPlay(fresh = false) {
             ${state.shuffled.map((c, i) => choiceButton(c, i)).join("")}
           </div>
 
+          ${picked ? `<button class="btn btn--primary btn--block m-only" id="m-reveal">See the breakdown ${ICON.arrow}</button>` : ""}
           ${picked ? revealCard(s, picked) : `<p class="kbd-hint">Tip: press 1, 2 or 3 to choose</p>`}
         </div>
       </div>
@@ -245,6 +263,10 @@ function renderPlay(fresh = false) {
   });
   const next = document.getElementById("next");
   if (next) next.addEventListener("click", advance);
+  const mScene = document.getElementById("m-scene");
+  if (mScene) mScene.addEventListener("click", () => { sound.play("tap"); setStage("decide", ".prompt"); });
+  const mReveal = document.getElementById("m-reveal");
+  if (mReveal) mReveal.addEventListener("click", () => setStage("reveal", "#reveal"));
 }
 
 function choiceButton(c, i) {
@@ -281,9 +303,17 @@ function revealCard(s, picked) {
         <div class="voice voice--heart"><span class="eyebrow">${ICON.heart}Your heart says</span><p>${esc(f.emotionSignal)}</p></div>
         <div class="voice voice--head"><span class="eyebrow">${ICON.head}Your head says</span><p>${esc(f.logicCheck)}</p></div>
         <div class="voice voice--balance"><span class="eyebrow">${ICON.balance}Together</span><p>${esc(f.balancedInsight)}</p></div>
+        <div class="voice voice--abc m-only"><span class="eyebrow">ABC breakdown</span>
+          <ol class="abc-list">
+            <li><b>A</b><p><span>Ask</span>${esc(f.abc.a)}</p></li>
+            <li><b>B</b><p><span>Balance</span>${esc(f.abc.b)}</p></li>
+            <li><b>C</b><p><span>Choose</span>${esc(f.abc.c)}</p></li>
+          </ol>
+        </div>
       </div>
+      <p class="m-only m-swipe" aria-hidden="true">Swipe for more →</p>
 
-      <ol class="abc-list" aria-label="ABC breakdown">
+      <ol class="abc-list abc-list--main" aria-label="ABC breakdown">
         <li><b>A</b><p><span>Ask</span>${esc(f.abc.a)}</p></li>
         <li><b>B</b><p><span>Balance</span>${esc(f.abc.b)}</p></li>
         <li><b>C</b><p><span>Choose</span>${esc(f.abc.c)}</p></li>
@@ -304,6 +334,7 @@ function choose(i) {
   sound.play(c.type);
   renderPlay();
   const reveal = document.getElementById("reveal");
+  if (isPhone()) { const b = document.getElementById("m-reveal"); if (b) b.focus({ preventScroll: true }); return; }
   requestAnimationFrame(() => {
     reveal.scrollIntoView({ behavior: "smooth", block: "start" });
     reveal.focus({ preventScroll: true });
@@ -409,7 +440,11 @@ function renderResults() {
   const retrainQueue = (hasRetrained ? stillMissed : missed).map((s) => SCENARIOS.indexOf(s));
 
   app.innerHTML = `
-    <section class="results screen">
+    <section class="results screen" data-mtab="profile">
+      ${missed.length ? `<nav class="m-tabs m-only" role="tablist" aria-label="Results sections">
+        <button type="button" role="tab" data-tab="profile" aria-selected="true">Your profile</button>
+        <button type="button" role="tab" data-tab="tipped" aria-selected="false">Where you tipped (${missed.length})</button>
+      </nav>` : ""}
       <span class="eyebrow">Your balance profile</span>
       <h1>${p.title}</h1>
       ${scaleSVG()}
@@ -429,12 +464,19 @@ function renderResults() {
       ${missed.length ? `
         <div class="traps">
           <h3>Where you tipped</h3>
-          ${trapRows}
+          <div class="trap-rows">${trapRows}</div>
+          <p class="m-only m-swipe" aria-hidden="true">Swipe for more →</p>
         </div>` : ""}
     </section>`;
 
   requestAnimationFrame(() => requestAnimationFrame(() => tiltScale(lean())));
   window.scrollTo({ top: 0 });
+
+  app.querySelectorAll(".m-tabs button").forEach((b) => b.addEventListener("click", () => {
+    app.querySelector(".results").dataset.mtab = b.dataset.tab;
+    app.querySelectorAll(".m-tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+    window.scrollTo({ top: 0 });
+  }));
 
   const retrainBtn = document.getElementById("retrain");
   if (retrainBtn) retrainBtn.addEventListener("click", () => {

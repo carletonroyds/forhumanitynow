@@ -34,7 +34,7 @@
     </header>
 
     <!-- INTRO -->
-    <main class="screen intro" id="introScreen" aria-labelledby="introTitle">
+    <main class="screen intro" id="introScreen" aria-labelledby="introTitle" data-mstage="copy">
       <div class="intro-copy">
         <p class="eyebrow">Ten conversations · about eight minutes</p>
         <h1 id="introTitle">The answer you get depends on the <em>question you ask.</em></h1>
@@ -43,6 +43,7 @@
           <button class="btn primary" id="startBtn" type="button">Begin <span aria-hidden="true">→</span></button>
           <span class="hint">Use keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> and <kbd>Enter</kbd></span>
         </div>
+        <button class="btn primary m-only" id="mIntroBtn" type="button">Continue <span aria-hidden="true">→</span></button>
       </div>
       <figure class="anatomy" id="anatomy" aria-label="Anatomy of a strong question">
         <figcaption class="eyebrow">Anatomy of a strong question</figcaption>
@@ -55,11 +56,12 @@
           <li data-d="s"><b>Specifics</b><span>Dates, figures, examples they can act on.</span></li>
           <li data-d="o"><b>Openness</b><span>Invites their view instead of a verdict.</span></li>
         </ol>
+        <button class="btn primary m-only" id="mStartBtn" type="button">Begin <span aria-hidden="true">→</span></button>
       </figure>
     </main>
 
     <!-- PLAY -->
-    <main class="screen play" id="playScreen" hidden aria-labelledby="sceneTitle">
+    <main class="screen play" id="playScreen" hidden aria-labelledby="sceneTitle" data-mstage="scene">
       <div class="hud">
         <span class="hud-count" id="hudCount">01 / 10</span>
         <div class="track" id="track" aria-hidden="true"></div>
@@ -72,11 +74,14 @@
           <h2 class="scene-title" id="sceneTitle" tabindex="-1"></h2>
           <p class="scene-text" id="sceneText"></p>
           <div class="scene-goal"><span>Your aim</span><p id="sceneGoal"></p></div>
+          <button class="btn primary m-only" id="mSceneBtn" type="button">Choose your question <span aria-hidden="true">→</span></button>
         </section>
 
         <section class="decide" aria-labelledby="askLabel">
           <p class="ask-label" id="askLabel">What do you ask?</p>
           <div class="options" id="options"></div>
+          <p class="m-only m-swipe" aria-hidden="true">Swipe to compare →</p>
+          <button class="btn primary m-only" id="mReviewBtn" type="button" hidden>See the breakdown <span aria-hidden="true">→</span></button>
           <div class="verdict" id="verdict" hidden>
             <span class="verdict-pts" id="verdictPts"></span>
             <div class="verdict-body">
@@ -90,7 +95,12 @@
     </main>
 
     <!-- RESULTS -->
-    <main class="screen results" id="resultScreen" hidden aria-labelledby="resultTitle">
+    <main class="screen results" id="resultScreen" hidden aria-labelledby="resultTitle" data-mtab="summary">
+      <nav class="m-tabs m-only" role="tablist" aria-label="Results sections">
+        <button type="button" role="tab" data-tab="summary" aria-selected="true">Summary</button>
+        <button type="button" role="tab" data-tab="profile" aria-selected="false">Profile</button>
+        <button type="button" role="tab" data-tab="review" aria-selected="false">Review</button>
+      </nav>
       <div class="result-top">
         <div class="score-dial" id="scoreDial" style="--p:0">
           <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="dial-bg" cx="60" cy="60" r="54"/><circle class="dial-fg" id="dialFg" cx="60" cy="60" r="54"/></svg>
