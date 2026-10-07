@@ -477,6 +477,25 @@
   @media (min-width: 900px) {
     .screen { max-width: 600px; }
   }
+  /* Phone: keep the result card on one screen */
+  @media (max-width: 600px) {
+    body:has(#screen-result.active) { padding: 10px 12px; }
+    .result-card { padding: 18px 16px; }
+    .result-emoji { font-size: 40px; margin-bottom: 2px; }
+    .result-color-label { margin-bottom: 2px; }
+    .result-name { font-size: 24px; margin-bottom: 4px; }
+    .result-tagline { font-size: 17px; margin-bottom: 8px; }
+    .result-desc { font-size: 14px; line-height: 1.55; margin-bottom: 14px; }
+    .result-grid { gap: 8px; margin-bottom: 10px; }
+    .result-box { padding: 12px 14px; border-radius: 14px; }
+    .result-box-title { margin-bottom: 8px; }
+    .result-box ul { gap: 5px; }
+    .result-box li { font-size: 13px; }
+    .result-funfact { font-size: 13px; line-height: 1.45; }
+    .result-footer-note { padding: 0 6px; margin: 0 0 12px; background: none; border: 0; font-size: 12px; line-height: 1.45; }
+    .result-actions { flex-wrap: nowrap; gap: 8px; }
+    .result-actions button { flex: 1; padding: 12px 10px; font-size: 14px; white-space: nowrap; }
+  }
 </style>
 </head>
 <body>
