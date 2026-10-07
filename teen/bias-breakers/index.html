@@ -492,6 +492,142 @@
       .mission-card { grid-template-columns: 72px 1fr; }
       .mission-card img { width: 72px; }
     }
+
+    /* ---------- Phone: one screen at a time ---------- */
+    .m-only { display: none; }
+    @media (max-width: 600px) {
+      .m-only:not([hidden]) { display: flex; }
+      .page-shell { grid-template-columns: minmax(0, 1fr); }
+      .summary-panel { min-width: 0; max-width: 100%; }
+      .deck, .mission-picks, .insight-grid { min-width: 0; }
+      .game { display: flex; flex-direction: column; }
+      .topbar { padding: 12px 16px 0; }
+      .screen { flex: 1; min-height: 0; padding: 14px 16px 18px; }
+      .eyebrow { font-size: .62rem; }
+
+      /* Intro */
+      .hero { display: none; }
+      h1 { font-size: clamp(2.6rem, 13vw, 3.6rem); margin: 10px 0 12px; }
+      .dek { font-size: .95rem; line-height: 1.55; }
+      .loop { grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0 18px; }
+      .loop-step { display: block; padding: 10px; }
+      .loop-step b { margin-bottom: 4px; font-size: .64rem; }
+      .loop-step p { font-size: .72rem; line-height: 1.35; }
+      .intro-footer { gap: 10px; }
+
+      /* Play: HUD */
+      .hud { gap: 8px; margin-bottom: 12px; }
+      .segments { gap: 4px; }
+      .seg { height: 5px; }
+      .mode-chip { padding: 7px 10px; font-size: .6rem; }
+      .score-pill { padding: 5px 7px 5px 11px; font-size: .74rem; }
+      .play-layout { gap: 0; }
+
+      /* Play: stage visibility */
+      #playScreen[data-mstage="scene"] .decision-block,
+      #playScreen[data-mstage="scene"] .debrief,
+      #playScreen[data-mstage="decide"] .debrief,
+      #playScreen[data-mstage="decide"] .art-card,
+      #playScreen[data-mstage="decide"] .level-kicker,
+      #playScreen[data-mstage="decide"] #mSceneBtn,
+      #playScreen[data-mstage="debrief"] .scene-block,
+      #playScreen[data-mstage="debrief"] .decision-block { display: none !important; }
+
+      /* Stage 1: the scene */
+      .art-card { aspect-ratio: 16 / 10; }
+      .level-kicker { margin: 14px 0 4px; }
+      .scenario-title { font-size: 1.7rem; margin-bottom: 8px; }
+      .scenario-copy { font-size: .98rem; line-height: 1.55; }
+      #mSceneBtn { width: 100%; margin-top: 16px; }
+
+      /* Stage 2: decide */
+      #playScreen[data-mstage="decide"] .scenario-title { font-size: 1.2rem; margin-bottom: 3px; }
+      #playScreen[data-mstage="decide"] .scenario-copy {
+        font-size: .84rem; line-height: 1.45; color: #5a5f7c; cursor: pointer;
+        display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+      }
+      #playScreen[data-mstage="decide"] .scenario-copy.expanded { display: block; }
+      #playScreen[data-mstage="decide"] .scene-block { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+      .steps, .prompt-sub { display: none; }
+      .prompt { font-size: 1.12rem; margin-bottom: 10px; }
+      .choices { gap: 8px; }
+      .choice { min-height: 54px; padding: 10px 12px; gap: 10px; grid-template-columns: 28px 1fr; border-radius: 14px; }
+      .keycap { width: 26px; height: 26px; font-size: .68rem; }
+      .choice-text { font-size: .88rem; line-height: 1.38; }
+      .choice.name .choice-text { font-size: 1rem; }
+      .choice-sub { font-size: .74rem; line-height: 1.35; }
+      .step-result { margin-top: 10px; padding: 10px 12px; font-size: .82rem; line-height: 1.45; }
+      .action-row { margin-top: 10px; min-height: 0; gap: 10px; }
+      #mDebriefBtn { width: 100%; margin-top: 12px; }
+
+      /* Stage 3: debrief */
+      .debrief { margin: 0; padding-top: 0; border-top: 0; }
+      .verdict { margin-bottom: 12px; }
+      .verdict strong { font-size: 1.1rem; }
+      .insight-grid {
+        display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory;
+        margin: 0 -16px; padding: 2px 16px 6px; scrollbar-width: none;
+      }
+      .insight-grid::-webkit-scrollbar { display: none; }
+      .insight { flex: 0 0 84%; scroll-snap-align: center; padding: 14px; }
+      .insight p { font-size: .84rem; line-height: 1.5; }
+      .m-swipe { margin: 4px 0 0; justify-content: flex-end; color: #7a7f98; font-family: var(--mono); font-size: .6rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+      .unlock { margin-top: 10px; padding: 12px; gap: 12px; }
+      .mini-card { width: 56px; }
+      .unlock-q { font-size: 1rem; }
+
+      /* Lightning intro */
+      .summary-panel { padding: 18px 14px; }
+      .center-screen h2 { font-size: 1.8rem; }
+      .stats { grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 14px 0; }
+      .stat { padding: 10px 8px; }
+      .stat-number { font-size: 1.35rem; }
+      .stat-label { font-size: .52rem; letter-spacing: .05em; }
+      .callout { padding: 12px 14px; font-size: .86rem; line-height: 1.5; }
+      .rules { display: none; }
+      .button-row { margin-top: 16px; gap: 8px; }
+
+      /* Results */
+      .result-top { grid-template-columns: 84px 1fr; gap: 14px; align-items: start; }
+      .score-ring { width: 84px; height: 84px; }
+      .score-ring::after { inset: 8px; }
+      .score-ring span { font-size: 1.35rem; }
+      .rank { margin: 0 0 6px; font-size: .6rem; padding: 5px 10px; }
+      .result-top h2 { font-size: 1.35rem; margin-bottom: 4px; }
+      .result-top .dek { font-size: .84rem; line-height: 1.45; }
+      .result-top .eyebrow { display: none; }
+      .stats.four { grid-template-columns: repeat(4, 1fr); }
+      .stats.four .stat-number { font-size: 1.1rem; }
+      .deck-head { margin: 0 0 8px; }
+      .deck-head h3 { font-size: 1.1rem; }
+      .deck-head span { font-size: .7rem; }
+      .deck { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 -14px; padding: 2px 14px 6px; scrollbar-width: none; }
+      .deck::-webkit-scrollbar { display: none; }
+      .deck-card { flex: 0 0 104px; scroll-snap-align: start; }
+      .deck-meta { left: 9px; right: 9px; }
+      .deck-meta b { font-size: .8rem; }
+      .stat { padding: 9px 7px; }
+      #resultScreen .button-row { flex-direction: row; }
+      #resultScreen .button-row button { flex: 1; padding: 0 12px; font-size: .64rem; line-height: 1.25; }
+
+      /* Mission */
+      #missionScreen .summary-panel { padding: 16px 14px; }
+      #missionScreen .eyebrow { display: none; }
+      #missionScreen h2 { font-size: 1.4rem; margin-bottom: 8px; }
+      #missionScreen .dek { display: none; }
+      #missionScreen .m-dek { display: block; margin: 0; color: #4b5070; font-size: .86rem; line-height: 1.45; }
+      .mission-picks { flex-wrap: nowrap; overflow-x: auto; margin: 12px -14px; padding: 2px 14px 4px; scrollbar-width: none; }
+      .mission-picks::-webkit-scrollbar { display: none; }
+      .pick { flex: none; white-space: nowrap; padding: 9px 12px; }
+      .mission-card { grid-template-columns: 1fr; padding: 10px 12px; }
+      .mission-card img { display: none; }
+      .mission-card p { font-size: .82rem; }
+      .reflection-list { gap: 10px; margin-top: 12px; }
+      .reflection-item { gap: 6px; }
+      .reflection-item label { font-size: .86rem; }
+      textarea { min-height: 46px; padding: 10px 12px; }
+      .reflection-item label { font-size: .82rem; line-height: 1.35; }
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
@@ -541,7 +677,7 @@
       </section>
 
       <!-- PLAY -->
-      <section class="screen" id="playScreen" hidden aria-labelledby="scenarioTitle">
+      <section class="screen" id="playScreen" hidden aria-labelledby="scenarioTitle" data-mstage="scene">
         <div class="hud">
           <span class="mode-chip" id="modeChip" data-step="name">Level 01 · Name it</span>
           <div class="segments" id="segments" aria-hidden="true"></div>
@@ -557,6 +693,7 @@
             <div class="level-kicker" id="levelKicker">Level 01 of 10</div>
             <h2 class="scenario-title" id="scenarioTitle" tabindex="-1"></h2>
             <p class="scenario-copy" id="scenarioCopy"></p>
+            <button class="primary m-only" id="mSceneBtn" type="button">Name the glitch <span aria-hidden="true">→</span></button>
           </div>
           <div class="decision-block">
             <div class="steps" id="steps" data-at="name">
@@ -573,6 +710,7 @@
               <span class="key-hint">Press <span class="kbd">1</span> <span class="kbd">2</span> <span class="kbd">3</span> to choose</span>
               <button class="primary" id="toBreakBtn" type="button" hidden>Now break it <span aria-hidden="true">→</span></button>
             </div>
+            <button class="primary m-only" id="mDebriefBtn" type="button" hidden>See the breakdown <span aria-hidden="true">→</span></button>
           </div>
           <div class="debrief" id="debrief" hidden tabindex="-1"></div>
         </div>
@@ -641,12 +779,13 @@
         <div class="summary-panel">
           <div class="eyebrow">Field mission</div>
           <h2 id="missionTitle" tabindex="-1">Take one glitch into the real world.</h2>
+          <p class="m-only m-dek">Pick one bias to hunt this week. Think about the questions or write privately. Nothing is saved.</p>
           <p class="dek">Games are practice. Pick one bias to hunt this week, in your feed, at school, or in your own head. You can just think about the questions below, or write privately. Nothing is saved or sent anywhere.</p>
           <div class="mission-picks" id="missionPicks" role="radiogroup" aria-label="Choose a bias to hunt"></div>
           <div class="mission-card" id="missionCard" hidden></div>
           <div class="reflection-list">
-            <div class="reflection-item"><label for="r1">Where could this bias show up for you this week?<span class="optional">Optional</span></label><textarea id="r1" placeholder="Group chat, the lunch table, a game, your feed…"></textarea></div>
-            <div class="reflection-item"><label for="r2">What will you say to yourself when you catch it?<span class="optional">Optional</span></label><textarea id="r2" placeholder="Your own breaker question…"></textarea></div>
+            <div class="reflection-item"><label for="r1">Where could this bias show up for you this week?<span class="optional">Optional</span></label><textarea id="r1" rows="1" placeholder="Group chat, lunch table, your feed…"></textarea></div>
+            <div class="reflection-item"><label for="r2">What will you say to yourself when you catch it?<span class="optional">Optional</span></label><textarea id="r2" rows="1" placeholder="Your own breaker question…"></textarea></div>
           </div>
           <div class="button-row"><button class="primary" id="finishBtn" type="button">Finish &amp; restart</button></div>
         </div>
@@ -913,6 +1052,13 @@
       };
       const pad = n => String(n).padStart(2, "0");
       const say = msg => { $("#liveRegion").textContent = msg; };
+      const isPhone = () => window.matchMedia("(max-width: 600px)").matches;
+      function setMobileStage(stage, focusSel) {
+        $("#playScreen").dataset.mstage = stage;
+        if (!isPhone()) return;
+        window.scrollTo({ top: 0 });
+        if (focusSel) { const el = $(focusSel); if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1"); el.focus({ preventScroll: true }); }
+      }
 
       function setScreen(name, focusSel) {
         state.screen = name;
@@ -977,6 +1123,9 @@
         $("#scenarioTitle").textContent = b.title;
         $("#scenarioCopy").textContent = b.scene;
         $("#debrief").hidden = true;
+        $("#mDebriefBtn").hidden = true;
+        $("#scenarioCopy").classList.remove("expanded");
+        setMobileStage("scene");
         renderNameStep();
         say(`Level ${state.idx + 1} of ${TOTAL}: ${b.title}. ${b.scene} Name the glitch.`);
       }
@@ -1058,7 +1207,7 @@
           document.querySelector(".key-hint").hidden = true;
           $("#toBreakBtn").hidden = false;
           $("#toBreakBtn").focus({ preventScroll: true });
-          setTimeout(() => $("#toBreakBtn").scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
+          if (!isPhone()) setTimeout(() => $("#toBreakBtn").scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
           say(ok ? `Correct. ${b.name}. ${b.short}` : `Not quite. This is ${b.name}. ${b.short}`);
         } else {
           const ok = btn.dataset.key === "breaker";
@@ -1084,6 +1233,8 @@
           renderSegments();
           setStepUI("done");
           $("#actionRow").hidden = true;
+          $("#mDebriefBtn").hidden = false;
+          if (isPhone()) $("#mDebriefBtn").focus({ preventScroll: true });
           setTimeout(() => sound.play("unlock"), 450);
           renderDebrief(ok, clean);
         }
@@ -1103,7 +1254,8 @@
         document.querySelector(".key-hint").hidden = false;
         $("#promptText").setAttribute("tabindex", "-1");
         $("#promptText").focus({ preventScroll: true });
-        if (window.matchMedia("(max-width: 900px)").matches) $("#promptText").scrollIntoView({ behavior: "smooth", block: "start" });
+        if (isPhone()) window.scrollTo({ top: 0 });
+        else if (window.matchMedia("(max-width: 900px)").matches) $("#promptText").scrollIntoView({ behavior: "smooth", block: "start" });
         say(`Break it. Choose the move that breaks ${b.name}.`);
       }
 
@@ -1123,6 +1275,7 @@
             <article class="insight move-i"><div class="insight-label">Why the breaker works</div><p>${b.why}</p></article>
             <article class="insight irl-i"><div class="insight-label">Try it IRL</div><p>${b.irl}</p></article>
           </div>
+          <p class="m-only m-swipe" aria-hidden="true">Swipe for more →</p>
           <div class="unlock">
             <div class="mini-card"><img src="${IMG[b.id]}" alt=""></div>
             <div><div class="unlock-kicker">Card ${pad(state.idx + 1)}/${TOTAL} added to your deck · ${b.name}</div><p class="unlock-q">Breaker question: “${b.question}”</p></div>
@@ -1130,8 +1283,10 @@
           </div>`;
         $("#debrief").hidden = false;
         $("#nextBtn").addEventListener("click", nextLevel, { once: true });
-        setTimeout(() => $("#debrief").scrollIntoView({ behavior: "smooth", block: "start" }), 250);
-        $("#debrief").focus({ preventScroll: true });
+        if (!isPhone()) {
+          setTimeout(() => $("#debrief").scrollIntoView({ behavior: "smooth", block: "start" }), 250);
+          $("#debrief").focus({ preventScroll: true });
+        }
         say(`${headline}. ${sub} Breaker question: ${b.question}`);
       }
 
@@ -1356,6 +1511,9 @@
       $("#startBtn").addEventListener("click", startGame);
       $("#hintBtn").addEventListener("click", useHint);
       $("#toBreakBtn").addEventListener("click", toBreak);
+      $("#mSceneBtn").addEventListener("click", () => { sound.init(); setMobileStage("decide", "#promptText"); });
+      $("#mDebriefBtn").addEventListener("click", () => setMobileStage("debrief", "#debrief"));
+      $("#scenarioCopy").addEventListener("click", () => { if (isPhone()) $("#scenarioCopy").classList.toggle("expanded"); });
       $("#startLightningBtn").addEventListener("click", startLightning);
       $("#skipLightningBtn").addEventListener("click", () => { state.lightningPlayed = false; state.lightning = null; showResults(); });
       $("#missionBtn").addEventListener("click", showMission);
