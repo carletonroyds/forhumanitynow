@@ -185,8 +185,8 @@ export class ResultScene extends Phaser.Scene {
             fontSize: `${footSz}px`,
             color: '#bfeaff',
             fontStyle: 'bold'
-        }).setOrigin(0.5).setLetterSpacing(2);
-        const fW = footT.displayWidth + 44;
+        }).setOrigin(0.5).setLetterSpacing(isMid ? 2 : 1);
+        const fW = footT.displayWidth + (isMid ? 44 : 24);
         const fH = footT.displayHeight + 16;
         const footBg = this.add.graphics();
         footBg.fillStyle(0x040810, 0.9);

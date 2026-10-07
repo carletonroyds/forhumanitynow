@@ -459,6 +459,33 @@ body::after{content:'';position:fixed;inset:0;
   box-shadow:0 4px 20px rgba(0,0,0,0.5);}
 .toast.show{transform:translateX(-50%) translateY(0);}
 .toast-pts{color:var(--cyan);font-weight:500;}
+
+/* ── Phone: brain on top, info panel below, all on one screen ── */
+@media (max-width: 600px){
+  body{display:flex;flex-direction:column;}
+  .hud{flex:none;padding:8px 14px;gap:10px;}
+  .hud-logo,.sdiv,.prog-wrap{display:none;}
+  .hud-title{font-size:15px;}
+  .hud-stats{gap:12px;}
+  .stat-val{font-size:15px;}
+  .app{flex:1;min-height:0;height:auto;flex-direction:column;}
+  .brain-stage{flex:none;justify-content:flex-start;padding-top:24px;}
+  .brain-hint{top:7px;font-size:8px;}
+  .brain-hint::before,.brain-hint::after{width:18px;}
+  .legend-bar{position:static;transform:none;width:100%;justify-content:flex-start;
+    overflow-x:auto;padding:4px 12px 8px;scrollbar-width:none;}
+  .legend-bar::-webkit-scrollbar{display:none;}
+  .leg{font-size:9px;padding:7px 10px;}
+  .ticker{display:none;}
+  .info-panel{width:100%;flex:1;min-height:0;border-left:0;border-top:1px solid var(--border);}
+  .empty-st{padding:14px 22px;gap:8px;}
+  .empty-orb{width:46px;height:46px;font-size:22px;}
+  .panel-top{padding:12px 16px 10px;}
+  .tr-wrap{margin:10px 16px;}
+  .psec{padding:10px 16px;}
+  .gordon,.scenario{margin:0 16px 10px;}
+  .sbody,.gordon-body,.scenario-body{font-size:13px;}
+}
 </style>
 </head>
 <body>

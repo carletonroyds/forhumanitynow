@@ -349,8 +349,8 @@ function showFeedback(data, isCorrect) {
     const { width, height, isDesktop, isMid } = sz();
 
     const statusSz = isDesktop ? 26 : isMid ? 20 : 16;
-    const headSz   = isDesktop ? 15 : isMid ? 13 : 12;
-    const bodySz   = isDesktop ? 14 : isMid ? 12 : 11;
+    const headSz   = isDesktop ? 15 : 13;
+    const bodySz   = isDesktop ? 14 : isMid ? 12 : 13;
     const btnSz    = isDesktop ? 18 : isMid ? 16 : 14;
     const pad      = isDesktop ? 44 : 28;
     const gapSm    = isDesktop ? 12 : 8;

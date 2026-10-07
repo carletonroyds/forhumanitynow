@@ -347,6 +347,7 @@
     .pledge ol { position: relative; margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: p; }
     .pledge li { counter-increment: p; display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.16); font-size: .86rem; font-weight: 650; line-height: 1.35; animation: dropIn .4s ease both; }
     .pledge li::before { content: counter(p); width: 24px; height: 24px; display: grid; place-items: center; border-radius: 8px; background: #fff; color: var(--violet-ink); font-family: var(--mono); font-size: .72rem; font-weight: 800; }
+    .pledge li .short { display: none; }
     .pledge li.empty { background: transparent; border: 1.5px dashed rgba(255,255,255,.45); color: rgba(255,255,255,.75); font-weight: 500; }
     .pledge-foot { position: relative; margin: 16px 0 0; font-size: .74rem; opacity: .9; line-height: 1.45; }
     .reflection-item { display: grid; gap: 9px; margin-top: 22px; }
@@ -413,6 +414,169 @@
       .button-row { flex-direction: column; }
       .button-row button { width: 100%; }
     }
+
+    /* ---------- Phone: one screen at a time ---------- */
+    .m-only { display: none; }
+    @media (max-width: 600px) {
+      .m-only:not([hidden]) { display: flex; }
+      .page-shell { grid-template-columns: minmax(0, 1fr); }
+      .summary-panel { min-width: 0; max-width: 100%; }
+      .kit, .picks, .insight-grid { min-width: 0; }
+      .game { display: flex; flex-direction: column; }
+      .topbar { padding: 12px 16px 0; }
+      .screen { flex: 1; min-height: 0; padding: 14px 16px 18px; }
+      .eyebrow { font-size: .62rem; }
+
+      /* Intro */
+      .hero { display: none; }
+      h1 { font-size: clamp(2.1rem, 10.4vw, 3rem); margin: 10px 0 12px; }
+      .dek { font-size: .95rem; line-height: 1.55; }
+      .loop { grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0 18px; }
+      .loop-step { display: block; padding: 10px; }
+      .loop-step b { margin-bottom: 4px; font-size: .64rem; }
+      .loop-step p { font-size: .72rem; line-height: 1.35; }
+      .intro-actions { gap: 8px; margin-bottom: 12px; }
+
+      /* Play: HUD */
+      .hud { gap: 8px; margin-bottom: 12px; }
+      .segments { gap: 4px; }
+      .seg { height: 5px; }
+      .mode-chip { padding: 7px 10px; font-size: .6rem; }
+      .focus-pill { padding: 5px 10px; font-size: .7rem; }
+
+      /* Play: one column, story above the post */
+      .play-layout { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+      .decision-block { display: contents; }
+      .level-kicker { display: none; }
+      .scenario-title { order: 0; font-size: 1.35rem; margin-bottom: 4px; }
+      .scenario-copy { order: 1; margin: 0 0 10px; font-size: .86rem; line-height: 1.45; }
+      .phone-col { order: 2; }
+      #mSceneBtn { order: 3; width: 100%; margin-top: 12px; }
+      .steps, .prompt, .prompt-sub, .choices, .step-result, .action-row, #mDebriefBtn { order: 4; }
+      .debrief { order: 5; }
+
+      /* The post, without the phone frame */
+      .phone { width: 100%; padding: 0; border-radius: 18px; background: none; box-shadow: 0 14px 34px rgba(40,40,110,.16), 0 0 0 1px rgba(60,70,140,.12); }
+      .screen-in { border-radius: 18px; }
+      .notch, .status, .app-bar, .post-actions { display: none; }
+      .post-head { padding: 8px 12px; }
+      .avatar { width: 30px; height: 30px; }
+      .media { aspect-ratio: 16 / 10; padding: 14px 14px 16px; }
+      .media-text { font-size: 1.15rem; }
+      .media-sub { margin-top: 6px; font-size: .72rem; }
+      .widget { gap: 4px; left: 10px; right: 10px; top: 10px; }
+      .pill { font-size: .62rem; padding: 4px 8px; border-radius: 10px; }
+      .clock { font-size: 1.1rem; padding: 6px 12px; }
+      .caption { padding: 8px 12px 8px; font-size: .74rem; line-height: 1.4; }
+      .readout { padding: 7px 12px 9px; gap: 5px; }
+      .chip { font-size: .62rem; padding: 3px 7px; }
+
+      /* Stage visibility */
+      #playScreen[data-mstage="scene"] .steps,
+      #playScreen[data-mstage="scene"] .prompt,
+      #playScreen[data-mstage="scene"] .prompt-sub,
+      #playScreen[data-mstage="scene"] .choices,
+      #playScreen[data-mstage="scene"] .step-result,
+      #playScreen[data-mstage="scene"] .action-row,
+      #playScreen[data-mstage="scene"] #mDebriefBtn,
+      #playScreen[data-mstage="scene"] .debrief,
+      #playScreen[data-mstage="decide"] .phone-col,
+      #playScreen[data-mstage="decide"] #mSceneBtn,
+      #playScreen[data-mstage="decide"] .debrief,
+      #playScreen[data-mstage="debrief"] .decision-block > *,
+      #playScreen[data-mstage="debrief"] .phone-col { display: none !important; }
+
+      /* Stage 2: decide */
+      #playScreen[data-mstage="decide"] .scenario-title { font-size: 1.2rem; margin-bottom: 3px; }
+      #playScreen[data-mstage="decide"] .scenario-copy {
+        font-size: .84rem; line-height: 1.45; color: #5a5f7c; cursor: pointer;
+        display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+      }
+      #playScreen[data-mstage="decide"] .prompt { padding-top: 12px; border-top: 1px solid var(--line); }
+      #playScreen[data-mstage="decide"] .scenario-copy.expanded { display: block; }
+      .steps, .prompt-sub { display: none; }
+      .prompt { font-size: 1.12rem; margin-bottom: 10px; }
+      .choices { gap: 8px; }
+      .choice { min-height: 54px; padding: 10px 12px; gap: 10px; grid-template-columns: 28px 1fr; border-radius: 14px; }
+      .keycap { width: 26px; height: 26px; font-size: .68rem; }
+      .choice-text { font-size: .88rem; line-height: 1.38; }
+      .choice.trap .choice-text { font-size: 1rem; }
+      .step-result { margin-top: 10px; padding: 10px 12px; font-size: .82rem; line-height: 1.45; }
+      .action-row { margin-top: 10px; min-height: 0; }
+      #mDebriefBtn { width: 100%; margin-top: 12px; }
+
+      /* Stage 3: debrief */
+      .debrief { margin: 0; padding-top: 0; border-top: 0; }
+      .verdict { margin-bottom: 12px; }
+      .verdict strong { font-size: 1.1rem; }
+      .insight-grid {
+        display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory;
+        margin: 0 -16px; padding: 2px 16px 6px; scrollbar-width: none;
+      }
+      .insight-grid::-webkit-scrollbar { display: none; }
+      .insight { flex: 0 0 84%; scroll-snap-align: center; padding: 14px; }
+      .insight p { font-size: .84rem; line-height: 1.5; }
+      .insight p.lead { margin-bottom: 6px; }
+      .m-swipe { margin: 4px 0 0; justify-content: flex-end; color: #7a7f98; font-family: var(--mono); font-size: .6rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+      .unlock { margin-top: 10px; padding: 12px; gap: 12px; }
+      .vial { width: 52px; height: 52px; border-radius: 14px; }
+      .unlock-q { font-size: 1rem; }
+
+      /* Results & kit */
+      .summary-panel { padding: 18px 14px; }
+      .result-top { grid-template-columns: 84px 1fr; gap: 14px; align-items: start; }
+      .score-ring { width: 84px; height: 84px; }
+      .score-ring::after { inset: 8px; }
+      .score-ring span { font-size: 1.3rem; }
+      .score-ring small { font-size: .46rem; margin-top: 3px; }
+      .rank { margin: 0 0 6px; font-size: .6rem; padding: 5px 10px; }
+      .result-top h2 { font-size: 1.35rem; margin-bottom: 4px; }
+      .result-top .dek { font-size: .8rem; line-height: 1.42; }
+      .result-top .eyebrow { display: none; }
+      .stats { grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 14px 0; }
+      .stats .stat:last-child { grid-column: auto; }
+      .stat { padding: 8px 7px; }
+      .stat-number { font-size: 1.3rem; }
+      .stat-label { font-size: .52rem; letter-spacing: .03em; }
+      .pledge li .full { display: none; }
+      .pledge li .short { display: inline; }
+      #guideBlock h2 { font-size: 1.6rem; margin: 8px 0; }
+      #guideBlock .dek { font-size: .88rem; margin-bottom: 12px; }
+      .kit-head { margin: 0 0 8px; }
+      .kit-head h3 { font-size: 1.1rem; }
+      .kit-head span { font-size: .7rem; }
+      .kit { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 -14px; padding: 2px 14px 6px; scrollbar-width: none; }
+      .kit::-webkit-scrollbar { display: none; }
+      .kit-card { flex: 0 0 108px; scroll-snap-align: start; padding: 8px; gap: 5px; border-radius: 14px; }
+      .kit-card img { aspect-ratio: 4 / 3; border-radius: 10px; }
+      .kit-badge { top: 12px; right: 12px; }
+      .kit-card b { font-size: .8rem; }
+      .kit-badge { top: 12px; right: 12px; }
+      #resultScreen .button-row { flex-direction: row; margin-top: 16px; gap: 8px; }
+      #resultScreen .button-row button { flex: 1; width: auto; padding: 0 12px; font-size: .64rem; line-height: 1.25; }
+
+      /* Plan */
+      #planScreen .eyebrow, #planScreen .dek, .pick-count, .pledge-foot { display: none; }
+      #planScreen h2 { font-size: 1.45rem; margin-bottom: 6px; }
+      .m-dek { display: block; margin: 0; color: #4b5070; font-size: .86rem; line-height: 1.45; }
+      .plan-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 10px; }
+      .plan-grid > * { min-width: 0; }
+      .picks { flex-wrap: nowrap; overflow-x: auto; margin: 0 -14px; padding: 2px 14px 4px; scrollbar-width: none; }
+      .picks::-webkit-scrollbar { display: none; }
+      .pick { flex: none; white-space: nowrap; padding: 9px 12px; }
+      .pledge { min-height: 0; padding: 14px; border-radius: 18px; }
+      .pledge h3 { font-size: 1.1rem; margin: 4px 0 10px; }
+      .pledge ol { gap: 6px; }
+      .pledge li { padding: 7px 10px; font-size: .78rem; grid-template-columns: 24px 1fr; }
+      .pledge li::before { width: 22px; height: 22px; }
+      .reflection-item { gap: 6px; margin-top: 10px; }
+      .reflection-item label { font-size: .82rem; line-height: 1.35; }
+      .reflection-item .optional { display: none; }
+      textarea { min-height: 42px; padding: 9px 12px; }
+      .pledge li { padding: 6px 10px; }
+      #planScreen .button-row { flex-direction: row; margin-top: 10px; gap: 8px; }
+      #planScreen .button-row button { flex: 1; width: auto; padding: 0 12px; font-size: .64rem; }
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
@@ -467,7 +631,7 @@
       </section>
 
       <!-- PLAY -->
-      <section class="screen" id="playScreen" hidden aria-labelledby="scenarioTitle">
+      <section class="screen" id="playScreen" hidden aria-labelledby="scenarioTitle" data-mstage="scene">
         <div class="hud">
           <span class="mode-chip" id="modeChip" data-step="spot">Post 01 · Spot the trap</span>
           <div class="segments" id="segments" aria-hidden="true"></div>
@@ -488,6 +652,7 @@
             <div class="level-kicker" id="levelKicker">Post 01 of 10</div>
             <h2 class="scenario-title" id="scenarioTitle" tabindex="-1"></h2>
             <p class="scenario-copy" id="scenarioCopy"></p>
+            <button class="primary m-only" id="mSceneBtn" type="button">Spot the trap <span aria-hidden="true">→</span></button>
             <div class="steps" id="steps" data-at="spot">
               <div class="step active" id="stepSpot"><span class="step-num">1</span><span class="step-label">Spot the trap</span></div>
               <span class="step-line"></span>
@@ -501,6 +666,7 @@
               <span class="key-hint" id="keyHint">Press <span class="kbd">1</span> <span class="kbd">2</span> <span class="kbd">3</span> to choose</span>
               <button class="primary" id="toAntiBtn" type="button" hidden>Choose the antidote <span aria-hidden="true">🧪</span></button>
             </div>
+            <button class="primary m-only" id="mDebriefBtn" type="button" hidden>See the breakdown <span aria-hidden="true">→</span></button>
           </div>
           <div class="debrief" id="debrief" hidden tabindex="-1"></div>
         </div>
@@ -540,13 +706,14 @@
         <div class="summary-panel wide">
           <div class="eyebrow">Your antidote plan</div>
           <h2 id="planTitle" tabindex="-1">Pick your top 3 antidotes.</h2>
+          <p class="m-only m-dek">Choose three you'll actually use this week. Writing is optional. Nothing is saved.</p>
           <p class="dek">Which traps get you most often? Choose three antidotes you'll actually use this week. Screenshot your card if you want to keep it. Nothing is saved or sent anywhere.</p>
           <div class="plan-grid">
             <div>
               <div class="picks" id="picks" role="group" aria-label="Choose up to three antidotes"></div>
               <p class="pick-count" id="pickCount">0 of 3 chosen</p>
-              <div class="reflection-item"><label for="r1">When does your feed pull you in the most?<span class="optional">Optional</span></label><textarea id="r1" placeholder="Late at night, after a bad day, when I'm bored in class…"></textarea></div>
-              <div class="reflection-item"><label for="r2">What's one thing you'll do instead of scrolling?<span class="optional">Optional</span></label><textarea id="r2" placeholder="Text a friend, go outside, put on music…"></textarea></div>
+              <div class="reflection-item"><label for="r1">When does your feed pull you in the most?<span class="optional">Optional</span></label><textarea id="r1" rows="1" placeholder="Late at night, after a bad day…"></textarea></div>
+              <div class="reflection-item"><label for="r2">What's one thing you'll do instead of scrolling?<span class="optional">Optional</span></label><textarea id="r2" rows="1" placeholder="Text a friend, go outside…"></textarea></div>
             </div>
             <div class="pledge" aria-live="polite">
               <small>MY ANTIDOTE PLAN</small>
@@ -801,6 +968,13 @@
       const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
       const pad = n => String(n).padStart(2, "0");
       const say = m => { $("#liveRegion").textContent = m; };
+      const isPhone = () => window.matchMedia("(max-width: 600px)").matches;
+      function setMobileStage(stage, focusSel) {
+        $("#playScreen").dataset.mstage = stage;
+        if (!isPhone()) return;
+        window.scrollTo({ top: 0 });
+        if (focusSel) { const el = $(focusSel); if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1"); el.focus({ preventScroll: true }); }
+      }
       const clearWidgets = () => { widgetTimers.forEach(t => { clearInterval(t); clearTimeout(t); }); widgetTimers = []; };
 
       function setScreen(name, focusSel) {
@@ -910,6 +1084,9 @@
         $("#scenarioCopy").textContent = t.scene;
         $("#debrief").hidden = true;
         $("#actionRow").hidden = false;
+        $("#mDebriefBtn").hidden = true;
+        $("#scenarioCopy").classList.remove("expanded");
+        setMobileStage("scene");
         renderSpot();
         say(`Post ${state.idx + 1} of ${TOTAL}: ${t.title}. ${t.scene} Post says: ${t.post.media}. Spot the trap.`);
       }
@@ -963,7 +1140,7 @@
           $("#keyHint").hidden = true;
           $("#toAntiBtn").hidden = false;
           $("#toAntiBtn").focus({ preventScroll: true });
-          setTimeout(() => $("#toAntiBtn").scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
+          if (!isPhone()) setTimeout(() => $("#toAntiBtn").scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
           say(ok ? `Correct, ${t.name}. It causes ${t.effect}.` : `Not quite. This is ${t.name}. It causes ${t.effect}.`);
         } else {
           const ok = btn.dataset.key === "good";
@@ -983,6 +1160,8 @@
           renderSegments();
           setStepUI("done");
           $("#actionRow").hidden = true;
+          $("#mDebriefBtn").hidden = false;
+          if (isPhone()) $("#mDebriefBtn").focus({ preventScroll: true });
           renderDebrief(ok, clean);
         }
       }
@@ -997,7 +1176,8 @@
         $("#toAntiBtn").hidden = true;
         $("#keyHint").hidden = false;
         $("#promptText").focus({ preventScroll: true });
-        if (window.matchMedia("(max-width: 900px)").matches) $("#promptText").scrollIntoView({ behavior: "smooth", block: "start" });
+        if (isPhone()) window.scrollTo({ top: 0 });
+        else if (window.matchMedia("(max-width: 900px)").matches) $("#promptText").scrollIntoView({ behavior: "smooth", block: "start" });
         say(`Choose the antidote for ${t.name}.`);
       }
       function renderDebrief(ok, clean) {
@@ -1016,6 +1196,7 @@
             <article class="insight i-effect"><div class="insight-label">What it does</div><p class="lead">${t.effect}</p><p>That's why the brain readout showed ${t.brain.map(([n, d]) => `${n.toLowerCase()} ${d === "up" ? "rising" : "dropping"}`).join(" and ")}.</p></article>
             <article class="insight i-anti"><div class="insight-label">Your antidote</div><p class="lead">${t.antidote}</p><p>${t.why}</p></article>
           </div>
+          <p class="m-only m-swipe" aria-hidden="true">Swipe for more →</p>
           <div class="unlock">
             <div class="vial"><img src="${t.img}" alt=""></div>
             <div><div class="unlock-kicker">🧪 Antidote ${pad(t.no)}/${TOTAL} added to your kit</div><p class="unlock-q">${t.label}</p></div>
@@ -1023,8 +1204,10 @@
           </div>`;
         $("#debrief").hidden = false;
         $("#nextBtn").addEventListener("click", nextLevel, { once: true });
-        setTimeout(() => $("#debrief").scrollIntoView({ behavior: "smooth", block: "start" }), 300);
-        $("#debrief").focus({ preventScroll: true });
+        if (!isPhone()) {
+          setTimeout(() => $("#debrief").scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+          $("#debrief").focus({ preventScroll: true });
+        }
         say(`${head}. ${sub} Antidote: ${t.antidote}`);
       }
       function nextLevel() {
@@ -1129,7 +1312,7 @@
         $("#pickCount").textContent = `${state.picks.length} of 3 chosen`;
         $("#pledgeList").innerHTML = [0, 1, 2].map(i => {
           const t = byId[state.picks[i]];
-          return t ? `<li>${t.antidote}</li>` : `<li class="empty">Pick an antidote</li>`;
+          return t ? `<li><span class="full">${t.antidote}</span><span class="short">${t.label}</span></li>` : `<li class="empty">Pick an antidote</li>`;
         }).join("");
         if (full) say("Your antidote plan is complete.");
       }
@@ -1146,6 +1329,9 @@
       $("#startBtn").addEventListener("click", startGame);
       $("#guideBtn").addEventListener("click", () => { sound.init(); showResults(true); });
       $("#toAntiBtn").addEventListener("click", toAntidote);
+      $("#mSceneBtn").addEventListener("click", () => { sound.init(); setMobileStage("decide", "#promptText"); });
+      $("#mDebriefBtn").addEventListener("click", () => setMobileStage("debrief", "#debrief"));
+      $("#scenarioCopy").addEventListener("click", () => { if (isPhone()) $("#scenarioCopy").classList.toggle("expanded"); });
       $("#planBtn").addEventListener("click", showPlan);
       $("#backKitBtn").addEventListener("click", () => showResults(!(state.played && state.results.length === TOTAL && state.results.every(r => r.done))));
       $("#playAgainBtn").addEventListener("click", startGame);

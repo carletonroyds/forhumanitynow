@@ -393,6 +393,100 @@
     @media (max-width: 900px) {
       .scene-bg::after { background: linear-gradient(0deg,rgba(252,251,255,.99) 0%,rgba(252,251,255,.93) 64%,rgba(255,255,255,.64) 100%); }
     }
+    /* ---------- Phone: one screen at a time ---------- */
+    .m-only { display: none; }
+    @media (max-width: 600px) {
+      .m-only:not([hidden]) { display: flex; }
+      .page-shell { grid-template-columns: minmax(0, 1fr); }
+      .summary-panel, .insight-grid { min-width: 0; }
+      .game { display: flex; flex-direction: column; }
+      .topbar { padding: 12px 16px 0; }
+      .screen { flex: 1; min-height: 0; padding: 14px 16px 18px; }
+
+      /* Play: header */
+      .progress-head { gap: 8px; margin-bottom: 14px; }
+      .mode-chip { padding: 7px 10px; font-size: .6rem; }
+      .progress-text { font-size: .7rem; }
+      .play-layout { gap: 0; }
+
+      /* Stage visibility */
+      #playScreen[data-mstage="scene"] .decision-block,
+      #playScreen[data-mstage="scene"] .feedback,
+      #playScreen[data-mstage="decide"] .scenario-number,
+      #playScreen[data-mstage="decide"] #mSceneBtn,
+      #playScreen[data-mstage="decide"] .pattern-card p,
+      #playScreen[data-mstage="decide"] .feedback,
+      #playScreen[data-mstage="debrief"] .scenario-block,
+      #playScreen[data-mstage="debrief"] .decision-block { display: none !important; }
+
+      /* Stage 1: the scene */
+      .scenario-number { margin-bottom: 6px; }
+      .scenario-title { font-size: 1.8rem; margin-bottom: 10px; }
+      .scenario-copy { font-size: 1rem; line-height: 1.6; }
+      .pattern-card { margin-top: 16px; padding: 12px 14px; }
+      .pattern-card p { font-size: .86rem; }
+      #mSceneBtn { width: 100%; margin-top: 18px; align-items: center; justify-content: center; gap: 10px; }
+
+      /* Stage 2: decide */
+      #playScreen[data-mstage="decide"] .scenario-title { font-size: 1.2rem; margin-bottom: 3px; }
+      #playScreen[data-mstage="decide"] .scenario-copy {
+        font-size: .84rem; line-height: 1.45; cursor: pointer;
+        display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+      }
+      #playScreen[data-mstage="decide"] .scenario-copy.expanded { display: block; }
+      #playScreen[data-mstage="decide"] .pattern-card { margin-top: 8px; padding: 6px 10px; }
+      #playScreen[data-mstage="decide"] .pattern-name { margin: 0; }
+      #playScreen[data-mstage="decide"] .decision-block { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+      .prompt { margin: 0 0 10px; }
+      .choices { gap: 8px; }
+      .choice { min-height: 0; padding: 11px 12px; gap: 10px; grid-template-columns: 26px 1fr; border-radius: 14px; }
+      .choice-text { font-size: .88rem; line-height: 1.4; }
+      .choice { position: relative; }
+      .choice-tag { position: absolute; top: -8px; right: 12px; margin: 0; padding: 3px 7px; font-size: .56rem; box-shadow: 0 2px 6px rgba(60,40,100,.12); background-color: #fff; }
+      .choices { gap: 12px; }
+      [tabindex="-1"]:focus { outline: none; box-shadow: none; }
+      .answer-actions { margin-top: 12px; }
+      #mDebriefBtn { width: 100%; margin-top: 12px; align-items: center; justify-content: center; gap: 10px; }
+
+      /* Stage 3: feedback */
+      .feedback { margin: 0; padding-top: 0; border-top: 0; }
+      .verdict { margin-bottom: 12px; }
+      .insight-grid {
+        display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory;
+        margin: 0 -16px; padding: 2px 16px 6px; scrollbar-width: none;
+      }
+      .insight-grid::-webkit-scrollbar { display: none; }
+      .insight { flex: 0 0 84%; scroll-snap-align: center; padding: 14px; }
+      .insight p { font-size: .86rem; line-height: 1.5; }
+      .m-swipe { margin: 4px 0 0; justify-content: flex-end; color: #716b83; font-size: .6rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+      .abc { grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+      .abc::before { left: 15%; right: 15%; top: 17px; bottom: auto; width: auto; height: 2px; background: linear-gradient(90deg,var(--purple),#c786b3,var(--orange)); }
+      .abc-step { display: block; min-height: 0; padding: 0 2px; text-align: center; }
+      .abc-letter { width: 34px; height: 34px; margin: 0 auto 6px; font-size: .9rem; }
+      .abc-step strong { margin: 0 0 3px; font-size: .64rem; }
+      .abc-step p { font-size: .68rem; line-height: 1.35; }
+      .feedback-next { margin-top: 14px; }
+
+      /* Summaries */
+      .center-screen { justify-content: flex-start; }
+      .summary-panel { padding: 18px 14px; }
+      .summary-panel h2 { font-size: 1.6rem; margin: 8px 0 8px; }
+      .summary-panel .dek { font-size: .9rem; line-height: 1.5; }
+      .stats { grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 14px 0; }
+      .stat { display: block; padding: 10px 8px; }
+      .stat-number { margin-bottom: 4px; font-size: 1.5rem; }
+      .stat-label { font-size: .56rem; letter-spacing: .05em; }
+      .training-callout { margin-top: 0; padding: 12px 14px; font-size: .88rem; line-height: 1.5; }
+      .button-row { margin-top: 16px; gap: 8px; }
+      .score-ring { width: 92px; height: 92px; margin-bottom: 12px; }
+      .score-ring::after { inset: 8px; }
+      .score-ring span { font-size: 1.5rem; }
+      .reflection-list { gap: 10px; margin-top: 12px; }
+      .reflection-item { gap: 6px; }
+      .reflection-item label { font-size: .84rem; line-height: 1.35; }
+      .reflection-item .optional { display: none; }
+      textarea { min-height: 42px; padding: 9px 12px; }
+    }
   </style>
 </head>
 <body>
@@ -418,7 +512,7 @@
         </div>
       </section>
 
-      <section class="screen" id="playScreen" hidden aria-labelledby="scenarioTitle">
+      <section class="screen" id="playScreen" hidden aria-labelledby="scenarioTitle" data-mstage="scene">
         <div class="progress-head" aria-label="Game progress">
           <span class="mode-chip" id="modeChip">Natural response</span>
           <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
@@ -432,6 +526,7 @@
             <div class="pattern-card" id="patternCard" hidden>
               <span class="pattern-name" id="patternName"></span><p id="patternCopy"></p>
             </div>
+            <button class="primary m-only" id="mSceneBtn" type="button">Choose your response <span aria-hidden="true">→</span></button>
           </div>
           <div class="decision-block">
             <p class="prompt" id="promptText">Select your natural response to this scenario.</p>
@@ -440,6 +535,7 @@
               <span class="key-hint">Use ↑ ↓ to explore</span>
               <button class="primary" id="confirmBtn" type="button" disabled>Confirm response</button>
             </div>
+            <button class="primary m-only" id="mDebriefBtn" type="button" hidden>See the breakdown <span aria-hidden="true">→</span></button>
           </div>
           <div class="feedback" id="feedback" hidden tabindex="-1"></div>
         </div>
@@ -474,11 +570,11 @@
         <div class="summary-panel">
           <div class="eyebrow">Reflection mode</div>
           <h2 id="reflectionTitle">Take the skill with you.</h2>
-          <p class="dek">You can simply think these through, or write privately below. Nothing is saved or sent anywhere.</p>
+          <p class="dek">You can simply think these through, or write privately below. All optional. Nothing is saved or sent anywhere.</p>
           <div class="reflection-list">
-            <div class="reflection-item"><label for="r1">Have you ever avoided something good because of fear?<span class="optional">Optional</span></label><textarea id="r1" placeholder="A thought to keep for yourself…"></textarea></div>
-            <div class="reflection-item"><label for="r2">What might have been different if you had pushed through that fear?<span class="optional">Optional</span></label><textarea id="r2" placeholder="There is no right answer…"></textarea></div>
-            <div class="reflection-item"><label for="r3">What is one thing you could do when fear is stopping you from doing something worthwhile?<span class="optional">Optional</span></label><textarea id="r3" placeholder="Name one small move…"></textarea></div>
+            <div class="reflection-item"><label for="r1">Have you ever avoided something good because of fear?<span class="optional">Optional</span></label><textarea id="r1" rows="1" placeholder="A thought to keep for yourself…"></textarea></div>
+            <div class="reflection-item"><label for="r2">What might have been different if you had pushed through that fear?<span class="optional">Optional</span></label><textarea id="r2" rows="1" placeholder="There is no right answer…"></textarea></div>
+            <div class="reflection-item"><label for="r3">What is one thing you could do when fear is stopping you from doing something worthwhile?<span class="optional">Optional</span></label><textarea id="r3" rows="1" placeholder="Name one small move…"></textarea></div>
           </div>
           <div class="button-row"><button class="primary" id="finishBtn" type="button">Finish &amp; restart</button></div>
         </div>
@@ -660,6 +756,14 @@
         firstAnswers: [], correctionAnswers: [], score: 0, streak: 0, bestStreak: 0, order: []
       };
 
+      const isPhone = () => window.matchMedia("(max-width: 600px)").matches;
+      function setMobileStage(stage, focusSel) {
+        $("#playScreen").dataset.mstage = stage;
+        if (!isPhone()) return;
+        window.scrollTo({ top: 0 });
+        if (focusSel) { const el = $(focusSel); if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1"); el.focus({ preventScroll: true }); }
+      }
+
       function shuffle(items) {
         const a = [...items];
         for (let i = a.length - 1; i > 0; i--) {
@@ -712,6 +816,9 @@
         $("#confirmBtn").disabled = true;
         $("#answerActions").hidden = false;
         $("#feedback").hidden = true;
+        $("#mDebriefBtn").hidden = true;
+        $("#scenarioCopy").classList.remove("expanded");
+        setMobileStage("scene");
         $("#choices").innerHTML = state.order.map((type, i) => `
           <button class="choice" type="button" role="radio" aria-checked="false" data-type="${type}" tabindex="${i === 0 ? 0 : -1}">
             <span class="choice-dot" aria-hidden="true">✓</span><span class="choice-text">${s.answers[type]}</span>
@@ -759,6 +866,8 @@
           b.insertAdjacentHTML("beforeend", `<span class="choice-tag">${b.dataset.type === "balanced" ? "Balanced" : b.dataset.type === "emotion" ? "Emotion" : "Rational"}</span>`);
         });
         $("#answerActions").hidden = true;
+        $("#mDebriefBtn").hidden = false;
+        if (isPhone()) $("#mDebriefBtn").focus({ preventScroll: true });
         renderFeedback();
       }
 
@@ -783,6 +892,7 @@
             <article class="insight rational"><div class="insight-label">Rational check</div><p>${s.feedback.rational}</p></article>
             <article class="insight balanced"><div class="insight-label">Balanced insight</div><p>${s.feedback.balanced}</p></article>
           </div>
+          <p class="m-only m-swipe" aria-hidden="true">Swipe for more →</p>
           <div class="abc" aria-label="Ask, Balance, Choose">
             <div class="abc-step"><span class="abc-letter">A</span><strong>ASK</strong><p>What am I feeling, and what is actually happening?</p></div>
             <div class="abc-step"><span class="abc-letter">B</span><strong>BALANCE</strong><p>What does emotion tell me, and what does the evidence tell me?</p></div>
@@ -791,8 +901,10 @@
           <div class="feedback-next"><button class="primary" id="nextBtn" type="button">${nextLabel} <span aria-hidden="true">→</span></button></div>`;
         $("#feedback").hidden = false;
         $("#nextBtn").addEventListener("click", nextScenario, {once:true});
-        $("#feedback").focus({preventScroll:true});
-        $("#feedback").scrollIntoView({behavior:"smooth",block:"nearest"});
+        if (!isPhone()) {
+          $("#feedback").focus({preventScroll:true});
+          $("#feedback").scrollIntoView({behavior:"smooth",block:"nearest"});
+        }
         $("#liveRegion").textContent = `${headline}. ${subline}`;
       }
 
@@ -855,6 +967,9 @@
 
       $("#startBtn").addEventListener("click", startNatural);
       $("#confirmBtn").addEventListener("click", confirmAnswer);
+      $("#mSceneBtn").addEventListener("click", () => setMobileStage("decide", "#promptText"));
+      $("#mDebriefBtn").addEventListener("click", () => setMobileStage("debrief", "#feedback"));
+      $("#scenarioCopy").addEventListener("click", () => { if (isPhone()) $("#scenarioCopy").classList.toggle("expanded"); });
       $("#beginCorrectionBtn").addEventListener("click", beginCorrection);
       $("#reflectionBtn").addEventListener("click", () => { setScreen("reflection"); $("#liveRegion").textContent = "Reflection mode. All questions are optional."; });
       $("#tryAgainBtn").addEventListener("click", beginCorrection);
